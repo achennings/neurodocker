@@ -1,8 +1,8 @@
 #!/bin/bash
 generate_docker() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=debian:stretch --pkg-manager=apt \
-    --install vim python \
+    --base=ubuntu20.04 --pkg-manager=apt \
+    --install vim python3 libopenmpi-dev \
     --user=root \
     --afni version=latest install_r=TRUE install_r_pkgs=TRUE method=binaries \
     --fsl version=6.0.4 method=binaries \
@@ -42,6 +42,6 @@ generate_singularity () {
           create_env="neuro" \
           activate=true
 }
-generate_singularity > Singularity
+# generate_singularity > Singularity
 generate_docker > Dockerfile
 #hello world

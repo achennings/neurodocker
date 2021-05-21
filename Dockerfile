@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/21 00:54:02 UTC
+# Timestamp: 2021/05/21 02:22:29 UTC
 
-FROM debian:stretch
+FROM ubuntu20.04
 
 USER root
 
@@ -47,7 +47,8 @@ ENTRYPOINT ["/neurodocker/startup.sh"]
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
            vim \
-           python \
+           python3 \
+           libopenmpi-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -271,13 +272,14 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "debian:stretch" \
+    \n      "ubuntu20.04" \
     \n    ], \
     \n    [ \
     \n      "install", \
     \n      [ \
     \n        "vim", \
-    \n        "python" \
+    \n        "python3", \
+    \n        "libopenmpi-dev" \
     \n      ] \
     \n    ], \
     \n    [ \
