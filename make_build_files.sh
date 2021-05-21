@@ -2,6 +2,7 @@
 generate_docker() {
   sudo docker run repronim/neurodocker:master generate docker \
     --base=debian:stretch --pkg-manager=apt \
+    --add-to-entrypoint "source ~/.bashrc ; conda activate neuro ; source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
     --install vim python3 libopenmpi-dev \
     --user=root \
     --afni version=latest install_r=TRUE install_r_pkgs=TRUE method=binaries \
@@ -10,15 +11,15 @@ generate_docker() {
     --dcm2niix version=2bf2e482aec8e9959c6bd8e833cdccba3607c617 method=source \
     --convert3d version=1.0.0 method=binaries \
     --freesurfer version=7.1.1 method=binaries \
-    --copy license.txt /license.txt \
-    --env FS_LICENSE=/license.txt \
+    --copy license.txt /home/neuro/license.txt \
+    --env FS_LICENSE=/home/neuro/license.txt \
     --matlabmcr version=2018a method=binaries \
     --user=neuro \
     --miniconda \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
           pip_install='nipype pingouin brainiak ipython' \
           create_env="neuro" \
-          activate=true
+          activate=TRUE
 }
 
 generate_singularity () {

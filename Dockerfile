@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/21 02:52:00 UTC
+# Timestamp: 2021/05/21 05:09:02 UTC
 
 FROM debian:stretch
 
@@ -43,6 +43,8 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
     && chmod -R 777 /neurodocker && chmod a+s /neurodocker
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
+
+RUN sed -i '$isource ~/.bashrc ; conda activate neuro ; source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh' $ND_ENTRYPOINT
 
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
@@ -205,9 +207,9 @@ RUN apt-get update -qq \
          --exclude='freesurfer/trctrain' \
     && sed -i '$isource "/opt/freesurfer-7.1.1/SetUpFreeSurfer.sh"' "$ND_ENTRYPOINT"
 
-COPY ["license.txt", "/license.txt"]
+COPY ["license.txt", "/home/neuro/license.txt"]
 
-ENV FS_LICENSE="/license.txt"
+ENV FS_LICENSE="/home/neuro/license.txt"
 
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/opt/matlabmcr-2018a/v94/runtime/glnxa64:/opt/matlabmcr-2018a/v94/bin/glnxa64:/opt/matlabmcr-2018a/v94/sys/os/glnxa64:/opt/matlabmcr-2018a/v94/extern/bin/glnxa64" \
     MATLABCMD="/opt/matlabmcr-2018a/v94/toolbox/matlab"
@@ -275,6 +277,10 @@ RUN echo '{ \
     \n      "debian:stretch" \
     \n    ], \
     \n    [ \
+    \n      "add_to_entrypoint", \
+    \n      "source ~/.bashrc ; conda activate neuro ; source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
+    \n    ], \
+    \n    [ \
     \n      "install", \
     \n      [ \
     \n        "vim", \
@@ -334,13 +340,13 @@ RUN echo '{ \
     \n      "copy", \
     \n      [ \
     \n        "license.txt", \
-    \n        "/license.txt" \
+    \n        "/home/neuro/license.txt" \
     \n      ] \
     \n    ], \
     \n    [ \
     \n      "env", \
     \n      { \
-    \n        "FS_LICENSE": "/license.txt" \
+    \n        "FS_LICENSE": "/home/neuro/license.txt" \
     \n      } \
     \n    ], \
     \n    [ \
