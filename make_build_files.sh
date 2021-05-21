@@ -44,3 +44,4 @@ generate_singularity () {
 }
 generate_singularity > Singularity
 generate_docker > Dockerfile
+#hello world
