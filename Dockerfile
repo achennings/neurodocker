@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/21 02:39:32 UTC
+# Timestamp: 2021/05/21 02:52:00 UTC
 
-FROM ubuntu:20.04
+FROM debian:stretch
 
 USER root
 
@@ -272,7 +272,7 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "ubuntu:20.04" \
+    \n      "debian:stretch" \
     \n    ], \
     \n    [ \
     \n      "install", \

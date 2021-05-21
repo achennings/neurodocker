@@ -1,7 +1,7 @@
 #!/bin/bash
 generate_docker() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=ubuntu:20.04 --pkg-manager=apt \
+    --base=debian:stretch --pkg-manager=apt \
     --install vim python3 libopenmpi-dev \
     --user=root \
     --afni version=latest install_r=TRUE install_r_pkgs=TRUE method=binaries \
