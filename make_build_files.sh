@@ -16,7 +16,7 @@ generate_docker() {
     --user=neuro \
     --miniconda \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
-          pip_install='nibabel nipype pingouin ipython' \
+          pip_install='nipype pingouin brainiak ipython' \
           create_env="neuro" \
           activate=true
 }
@@ -38,7 +38,7 @@ generate_singularity () {
     --user=neuro \
     --miniconda \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
-          pip_install='nibabel nipype pingouin ipython' \
+          pip_install='nipype pingouin brainiak ipython' \
           create_env="neuro" \
           activate=true
 }

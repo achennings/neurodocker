@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/20 21:44:11 UTC
+# Timestamp: 2021/05/21 00:54:02 UTC
 
 FROM debian:stretch
 
@@ -258,9 +258,9 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
     && sync && conda clean -y --all && sync \
     && bash -c "source activate neuro \
     &&   pip install --no-cache-dir  \
-             "nibabel" \
              "nipype" \
              "pingouin" \
+             "brainiak" \
              "ipython"" \
     && rm -rf ~/.cache/pip/* \
     && sync \
@@ -367,9 +367,9 @@ RUN echo '{ \
     \n          "traits" \
     \n        ], \
     \n        "pip_install": [ \
-    \n          "nibabel", \
     \n          "nipype", \
     \n          "pingouin", \
+    \n          "brainiak", \
     \n          "ipython" \
     \n        ], \
     \n        "create_env": "neuro", \

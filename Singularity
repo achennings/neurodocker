@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/20 21:44:09 UTC
+# Timestamp: 2021/05/21 00:54:00 UTC
 
 Bootstrap: docker
 From: debian:stretch
@@ -228,9 +228,9 @@ conda install -y -q --name neuro \
 sync && conda clean -y --all && sync
 bash -c "source activate neuro
   pip install --no-cache-dir  \
-      "nibabel" \
       "nipype" \
       "pingouin" \
+      "brainiak" \
       "ipython""
 rm -rf ~/.cache/pip/*
 sync
@@ -349,9 +349,9 @@ echo '{
 \n          "traits"
 \n        ],
 \n        "pip_install": [
-\n          "nibabel",
 \n          "nipype",
 \n          "pingouin",
+\n          "brainiak",
 \n          "ipython"
 \n        ],
 \n        "create_env": "neuro",
