@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/21 05:09:02 UTC
+# Timestamp: 2021/05/21 16:32:57 UTC
 
-FROM debian:stretch
+FROM ubuntu:20.04
 
 USER root
 
@@ -44,17 +44,12 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
 
-RUN sed -i '$isource ~/.bashrc ; conda activate neuro ; source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh' $ND_ENTRYPOINT
-
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
            vim \
-           python3 \
            libopenmpi-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-USER root
 
 ENV PATH="/opt/afni-latest:$PATH" \
     AFNI_PLUGINPATH="/opt/afni-latest"
@@ -269,28 +264,25 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
     && sync \
     && sed -i '$isource activate neuro' $ND_ENTRYPOINT
 
+RUN bash -c 'source ~/.bashrc'
+
+RUN bash -c 'conda activate neuro'
+
+RUN bash -c 'source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh'
+
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "debian:stretch" \
-    \n    ], \
-    \n    [ \
-    \n      "add_to_entrypoint", \
-    \n      "source ~/.bashrc ; conda activate neuro ; source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
+    \n      "ubuntu:20.04" \
     \n    ], \
     \n    [ \
     \n      "install", \
     \n      [ \
     \n        "vim", \
-    \n        "python3", \
     \n        "libopenmpi-dev" \
     \n      ] \
-    \n    ], \
-    \n    [ \
-    \n      "user", \
-    \n      "root" \
     \n    ], \
     \n    [ \
     \n      "afni", \
@@ -363,6 +355,8 @@ RUN echo '{ \
     \n    [ \
     \n      "miniconda", \
     \n      { \
+    \n        "create_env": "neuro", \
+    \n        "activate": true, \
     \n        "conda_install": [ \
     \n          "python=3.8", \
     \n          "matplotlib", \
@@ -379,10 +373,20 @@ RUN echo '{ \
     \n          "pingouin", \
     \n          "brainiak", \
     \n          "ipython" \
-    \n        ], \
-    \n        "create_env": "neuro", \
-    \n        "activate": true \
+    \n        ] \
     \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "source ~/.bashrc" \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "conda activate neuro" \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
     \n    ] \
     \n  ] \
     \n}' > /neurodocker/neurodocker_specs.json

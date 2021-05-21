@@ -1,10 +1,8 @@
 #!/bin/bash
 generate_docker() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=debian:stretch --pkg-manager=apt \
-    --add-to-entrypoint "source ~/.bashrc ; conda activate neuro ; source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
-    --install vim python3 libopenmpi-dev \
-    --user=root \
+    --base=ubuntu:20.04 --pkg-manager=apt \
+    --install vim libopenmpi-dev \
     --afni version=latest install_r=TRUE install_r_pkgs=TRUE method=binaries \
     --fsl version=6.0.4 method=binaries \
     --ants version=2.3.1 method=binaries \
@@ -16,33 +14,18 @@ generate_docker() {
     --matlabmcr version=2018a method=binaries \
     --user=neuro \
     --miniconda \
+          create_env="neuro" \
+          activate=true \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
           pip_install='nipype pingouin brainiak ipython' \
-          create_env="neuro" \
-          activate=TRUE
+    --run-bash "source ~/.bashrc" \
+    --run-bash "conda activate neuro" \
+    --run-bash "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh"
 }
 
-generate_singularity () {
-  sudo docker run repronim/neurodocker:master generate singularity \
-    --base=debian:stretch --pkg-manager=apt \
-    --install vim python \
-    --user=root \
-    --afni version=latest install_r=TRUE install_r_pkgs=TRUE method=binaries \
-    --fsl version=6.0.4 method=binaries \
-    --ants version=2.3.1 method=binaries \
-    --dcm2niix version=2bf2e482aec8e9959c6bd8e833cdccba3607c617 method=source \
-    --convert3d version=1.0.0 method=binaries \
-    --freesurfer version=7.1.1 method=binaries \
-    --copy license.txt /license.txt \
-    --env FS_LICENSE=/license.txt \
-    --matlabmcr version=2018a method=binaries \
-    --user=neuro \
-    --miniconda \
-          conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
-          pip_install='nipype pingouin brainiak ipython' \
-          create_env="neuro" \
-          activate=true
-}
+#generate_singularity () {
+#  sudo docker run repronim/neurodocker:master generate singularity \
+#}
 # generate_singularity > Singularity
 generate_docker > Dockerfile
 #hello world
