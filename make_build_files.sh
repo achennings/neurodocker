@@ -18,9 +18,7 @@ generate_docker() {
           activate=true \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
           pip_install='nipype pingouin brainiak ipython' \
-    --run-bash "source ~/.bashrc" \
-    --run-bash "conda activate neuro" \
-    --run-bash "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh"
+    --add-to-entrypoint "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh"
 }
 
 #generate_singularity () {
