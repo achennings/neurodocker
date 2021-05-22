@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/22 02:30:09 UTC
+# Timestamp: 2021/05/22 21:59:19 UTC
 
 FROM ubuntu:18.04
 
@@ -264,11 +264,7 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
     && sync \
     && sed -i '$isource activate neuro' $ND_ENTRYPOINT
 
-RUN bash -c 'source ~/.bashrc'
-
-RUN bash -c 'conda activate neuro'
-
-RUN bash -c 'source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh'
+RUN sed -i '$isource /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh' $ND_ENTRYPOINT
 
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
@@ -377,15 +373,7 @@ RUN echo '{ \
     \n      } \
     \n    ], \
     \n    [ \
-    \n      "run_bash", \
-    \n      "source ~/.bashrc" \
-    \n    ], \
-    \n    [ \
-    \n      "run_bash", \
-    \n      "conda activate neuro" \
-    \n    ], \
-    \n    [ \
-    \n      "run_bash", \
+    \n      "add_to_entrypoint", \
     \n      "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
     \n    ] \
     \n  ] \
