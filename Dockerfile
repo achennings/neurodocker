@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/21 16:32:57 UTC
+# Timestamp: 2021/05/22 02:30:09 UTC
 
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 USER root
 
@@ -275,7 +275,7 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "ubuntu:20.04" \
+    \n      "ubuntu:18.04" \
     \n    ], \
     \n    [ \
     \n      "install", \

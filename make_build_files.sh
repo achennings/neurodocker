@@ -1,7 +1,7 @@
 #!/bin/bash
 generate_docker() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=ubuntu:20.04 --pkg-manager=apt \
+    --base=ubuntu:18.04 --pkg-manager=apt \
     --install vim libopenmpi-dev \
     --afni version=latest install_r=TRUE install_r_pkgs=TRUE method=binaries \
     --fsl version=6.0.4 method=binaries \
