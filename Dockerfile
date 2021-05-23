@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/22 21:59:19 UTC
+# Timestamp: 2021/05/23 15:51:55 UTC
 
-FROM ubuntu:18.04
+FROM debian:stretch
 
 USER root
 
@@ -266,12 +266,14 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
 
 RUN sed -i '$isource /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh' $ND_ENTRYPOINT
 
+RUN sed -i '$iconda activate neuro' $ND_ENTRYPOINT
+
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "ubuntu:18.04" \
+    \n      "debian:stretch" \
     \n    ], \
     \n    [ \
     \n      "install", \
@@ -375,6 +377,10 @@ RUN echo '{ \
     \n    [ \
     \n      "add_to_entrypoint", \
     \n      "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
+    \n    ], \
+    \n    [ \
+    \n      "add_to_entrypoint", \
+    \n      "conda activate neuro" \
     \n    ] \
     \n  ] \
     \n}' > /neurodocker/neurodocker_specs.json

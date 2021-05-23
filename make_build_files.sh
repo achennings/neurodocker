@@ -1,7 +1,7 @@
 #!/bin/bash
 generate_docker() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=ubuntu:18.04 --pkg-manager=apt \
+    --base=debian:stretch --pkg-manager=apt \
     --install vim libopenmpi-dev \
     --afni version=latest install_r=TRUE install_r_pkgs=TRUE method=binaries \
     --fsl version=6.0.4 method=binaries \
@@ -18,7 +18,8 @@ generate_docker() {
           activate=true \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
           pip_install='nipype pingouin brainiak ipython' \
-    --add-to-entrypoint "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh"
+    --add-to-entrypoint "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
+    --add-to-entrypoint "conda activate neuro"
 }
 
 #generate_singularity () {
