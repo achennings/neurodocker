@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 21:42:49 UTC
+# Timestamp: 2021/05/24 21:50:16 UTC
 
-FROM neurodebian:focal
+FROM neurodebian:nd16.04
 
 USER root
 
@@ -43,8 +43,6 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
     && chmod -R 777 /neurodocker && chmod a+s /neurodocker
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
-
-RUN bash -c 'wget http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb && dpkg -i multiarch-support_2.27-3ubuntu1.2_amd64.deb'
 
 RUN apt-get update -qq \
     && apt-get install -y --quiet \
@@ -100,11 +98,7 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "neurodebian:focal" \
-    \n    ], \
-    \n    [ \
-    \n      "run_bash", \
-    \n      "wget http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb && dpkg -i multiarch-support_2.27-3ubuntu1.2_amd64.deb" \
+    \n      "neurodebian:nd16.04" \
     \n    ], \
     \n    [ \
     \n      "install", \

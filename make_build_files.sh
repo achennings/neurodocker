@@ -1,7 +1,7 @@
 #!/bin/bash
 generate_docker() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=neurodebian:focal-non-free --pkg-manager=apt \
+    --base=neurodebian:nd16.04 --pkg-manager=apt \
     --user=neuro \
     --install apt_opts="--quiet" vim libopenmpi-dev \
     --afni version=latest method=binaries install_r=true install_r_pkgs=true \
@@ -21,8 +21,7 @@ generate_docker() {
 }
 generate_docker_r() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=neurodebian:focal --pkg-manager=apt \
-    --run-bash "wget http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb && dpkg -i multiarch-support_2.27-3ubuntu1.2_amd64.deb" \
+    --base=neurodebian:nd16.04 --pkg-manager=apt \
     --install apt_opts="--quiet" vim libopenmpi-dev \
     --afni version=latest install_r=true install_r_pkgs=true method=binaries
 }

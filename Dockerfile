@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 21:42:47 UTC
+# Timestamp: 2021/05/24 21:50:14 UTC
 
-FROM neurodebian:focal-non-free
+FROM neurodebian:nd16.04
 
 USER root
 
@@ -267,7 +267,7 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "neurodebian:focal-non-free" \
+    \n      "neurodebian:nd16.04" \
     \n    ], \
     \n    [ \
     \n      "user", \
