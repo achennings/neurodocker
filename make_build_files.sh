@@ -4,8 +4,7 @@ generate_docker() {
     --base=neurodebian:focal-non-free --pkg-manager=apt \
     --user=neuro \
     --install apt_opts="--quiet" vim libopenmpi-dev \
-    --afni version=latest method=binaries \
-    --run "rPkgsInstall -pkgs ALL" \
+    --afni version=latest method=binaries install_r=true install_r_pkgs=true \
     --fsl version=6.0.4 method=binaries \
     --ants version=2.3.1 method=binaries \
     --dcm2niix version=2bf2e482aec8e9959c6bd8e833cdccba3607c617 method=source \
