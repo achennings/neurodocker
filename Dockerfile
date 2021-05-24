@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 20:17:29 UTC
+# Timestamp: 2021/05/24 20:20:21 UTC
 
 FROM neurodebian:focal-non-free
 
@@ -65,9 +65,12 @@ RUN apt-get update -qq \
            libglw1-mesa \
            libgomp1 \
            libjpeg62 \
+           libnlopt-dev \
            libxm4 \
            multiarch-support \
            netpbm \
+           r-base \
+           r-base-dev \
            tcsh \
            xfonts-base \
            xvfb \
@@ -90,9 +93,8 @@ RUN apt-get update -qq \
     && echo "Downloading AFNI ..." \
     && mkdir -p /opt/afni-latest \
     && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
-    | tar -xz -C /opt/afni-latest --strip-components 1
-
-RUN rPkgsInstall -pkgs ALL
+    | tar -xz -C /opt/afni-latest --strip-components 1 \
+    && PATH=$PATH:/opt/afni-latest rPkgsInstall -pkgs ALL
 
 ENV FSLDIR="/opt/fsl-6.0.4" \
     PATH="/opt/fsl-6.0.4/bin:$PATH" \
@@ -283,12 +285,10 @@ RUN echo '{ \
     \n      "afni", \
     \n      { \
     \n        "version": "latest", \
-    \n        "method": "binaries" \
+    \n        "method": "binaries", \
+    \n        "install_r": "true", \
+    \n        "install_r_pkgs": "true" \
     \n      } \
-    \n    ], \
-    \n    [ \
-    \n      "run", \
-    \n      "rPkgsInstall -pkgs ALL" \
     \n    ], \
     \n    [ \
     \n      "fsl", \
