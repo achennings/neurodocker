@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 20:38:20 UTC
+# Timestamp: 2021/05/24 21:05:32 UTC
 
 FROM neurodebian:focal-non-free
 
@@ -44,10 +44,8 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
 
-USER root
-
 RUN apt-get update -qq \
-    && apt-get install -y --quiet \
+    && apt-get install -y -q --no-install-recommends \
            vim \
            libopenmpi-dev \
     && apt-get clean \
@@ -103,13 +101,8 @@ RUN echo '{ \
     \n      "neurodebian:focal-non-free" \
     \n    ], \
     \n    [ \
-    \n      "user", \
-    \n      "root" \
-    \n    ], \
-    \n    [ \
     \n      "install", \
     \n      [ \
-    \n        "apt_opts=--quiet", \
     \n        "vim", \
     \n        "libopenmpi-dev" \
     \n      ] \

@@ -22,8 +22,7 @@ generate_docker() {
 generate_docker_r() {
   sudo docker run repronim/neurodocker:master generate docker \
     --base=neurodebian:focal-non-free --pkg-manager=apt \
-    --user=root \
-    --install apt_opts="--quiet" vim libopenmpi-dev \
+    --install vim libopenmpi-dev \
     --afni version=latest install_r=true install_r_pkgs=true method=binaries
 }
 # generate_singularity () {
