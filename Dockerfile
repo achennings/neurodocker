@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 19:46:23 UTC
+# Timestamp: 2021/05/24 20:00:23 UTC
 
 FROM neurodebian:buster
 
@@ -51,8 +51,6 @@ RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
            vim \
            libopenmpi-dev \
-           r-base \
-           r-base-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -277,9 +275,7 @@ RUN echo '{ \
     \n      "install", \
     \n      [ \
     \n        "vim", \
-    \n        "libopenmpi-dev", \
-    \n        "r-base", \
-    \n        "r-base-dev" \
+    \n        "libopenmpi-dev" \
     \n      ] \
     \n    ], \
     \n    [ \
