@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 16:09:20 UTC
+# Timestamp: 2021/05/24 19:32:23 UTC
 
-FROM neurodebian:stretch-non-free
+FROM neurodebian:buster
 
 USER root
 
@@ -44,10 +44,15 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
 
+RUN test "$(getent passwd neuro)" || useradd --no-user-group --create-home --shell /bin/bash neuro
+USER neuro
+
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \
            vim \
            libopenmpi-dev \
+           r-base \
+           r-base-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -62,12 +67,9 @@ RUN apt-get update -qq \
            libglw1-mesa \
            libgomp1 \
            libjpeg62 \
-           libnlopt-dev \
            libxm4 \
            multiarch-support \
            netpbm \
-           r-base \
-           r-base-dev \
            tcsh \
            xfonts-base \
            xvfb \
@@ -90,10 +92,9 @@ RUN apt-get update -qq \
     && echo "Downloading AFNI ..." \
     && mkdir -p /opt/afni-latest \
     && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
-    | tar -xz -C /opt/afni-latest --strip-components 1 \
-    && PATH=$PATH:/opt/afni-latest rPkgsInstall -pkgs ALL
+    | tar -xz -C /opt/afni-latest --strip-components 1
 
-RUN rPkgsInstall -pkgs ALL -site 'http://cloud.r-project.org'
+RUN rPkgsInstall -pkgs ALL
 
 ENV FSLDIR="/opt/fsl-6.0.4" \
     PATH="/opt/fsl-6.0.4/bin:$PATH" \
@@ -228,9 +229,6 @@ RUN export TMPDIR="$(mktemp -d)" \
     && rm -rf "$TMPDIR" \
     && unset TMPDIR
 
-RUN test "$(getent passwd neuro)" || useradd --no-user-group --create-home --shell /bin/bash neuro
-USER neuro
-
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
 RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
@@ -264,34 +262,36 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
     && rm -rf ~/.cache/pip/* \
     && sync
 
-RUN sed -i '$isource /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh' $ND_ENTRYPOINT
-
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "neurodebian:stretch-non-free" \
+    \n      "neurodebian:buster" \
+    \n    ], \
+    \n    [ \
+    \n      "user", \
+    \n      "neuro" \
     \n    ], \
     \n    [ \
     \n      "install", \
     \n      [ \
     \n        "vim", \
-    \n        "libopenmpi-dev" \
+    \n        "libopenmpi-dev", \
+    \n        "r-base", \
+    \n        "r-base-dev" \
     \n      ] \
     \n    ], \
     \n    [ \
     \n      "afni", \
     \n      { \
     \n        "version": "latest", \
-    \n        "install_r": "TRUE", \
-    \n        "install_r_pkgs": "TRUE", \
     \n        "method": "binaries" \
     \n      } \
     \n    ], \
     \n    [ \
     \n      "run", \
-    \n      "rPkgsInstall -pkgs ALL -site '"'"'http://cloud.r-project.org'"'"'" \
+    \n      "rPkgsInstall -pkgs ALL" \
     \n    ], \
     \n    [ \
     \n      "fsl", \
@@ -349,10 +349,6 @@ RUN echo '{ \
     \n      } \
     \n    ], \
     \n    [ \
-    \n      "user", \
-    \n      "neuro" \
-    \n    ], \
-    \n    [ \
     \n      "miniconda", \
     \n      { \
     \n        "use_env": "base", \
@@ -374,10 +370,6 @@ RUN echo '{ \
     \n          "ipython" \
     \n        ] \
     \n      } \
-    \n    ], \
-    \n    [ \
-    \n      "add_to_entrypoint", \
-    \n      "source /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh" \
     \n    ] \
     \n  ] \
     \n}' > /neurodocker/neurodocker_specs.json
