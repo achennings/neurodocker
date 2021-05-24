@@ -21,7 +21,7 @@ generate_docker() {
 }
 generate_docker_r() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=neurodebian:stretch --pkg-manager=apt \
+    --base=neurodebian:buster --pkg-manager=apt \
     --install apt_opts="--quiet" vim libopenmpi-dev\
     --afni version=latest install_r=true install_r_pkgs=true method=binaries
 }

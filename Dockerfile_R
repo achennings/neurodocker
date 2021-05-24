@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 22:09:32 UTC
+# Timestamp: 2021/05/24 22:42:36 UTC
 
-FROM neurodebian:stretch
+FROM neurodebian:buster
 
 USER root
 
@@ -98,7 +98,7 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "neurodebian:stretch" \
+    \n      "neurodebian:buster" \
     \n    ], \
     \n    [ \
     \n      "install", \
