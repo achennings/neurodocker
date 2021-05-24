@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 21:50:16 UTC
+# Timestamp: 2021/05/24 22:00:49 UTC
 
 FROM neurodebian:nd16.04
 
@@ -45,9 +45,11 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
 ENTRYPOINT ["/neurodocker/startup.sh"]
 
 RUN apt-get update -qq \
-    && apt-get install -y --quiet \
+    && apt-get install -y --quiet --install-suggests --yes \
            vim \
            libopenmpi-dev \
+           r-base \
+           r-base-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -103,16 +105,17 @@ RUN echo '{ \
     \n    [ \
     \n      "install", \
     \n      [ \
-    \n        "apt_opts=--quiet", \
+    \n        "apt_opts=--quiet --install-suggests --yes", \
     \n        "vim", \
-    \n        "libopenmpi-dev" \
+    \n        "libopenmpi-dev", \
+    \n        "r-base", \
+    \n        "r-base-dev" \
     \n      ] \
     \n    ], \
     \n    [ \
     \n      "afni", \
     \n      { \
     \n        "version": "latest", \
-    \n        "install_r": "true", \
     \n        "install_r_pkgs": "true", \
     \n        "method": "binaries" \
     \n      } \
