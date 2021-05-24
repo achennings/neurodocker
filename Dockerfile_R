@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 20:00:25 UTC
+# Timestamp: 2021/05/24 20:17:32 UTC
 
-FROM ubuntu:18.04
+FROM neurodebian:focal-non-free
 
 USER root
 
@@ -48,7 +48,7 @@ RUN test "$(getent passwd neuro)" || useradd --no-user-group --create-home --she
 USER neuro
 
 RUN apt-get update -qq \
-    && apt-get install -y -q --no-install-recommends \
+    && apt-get install -y --quiet \
            vim \
            libopenmpi-dev \
     && apt-get clean \
@@ -101,7 +101,7 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "ubuntu:18.04" \
+    \n      "neurodebian:focal-non-free" \
     \n    ], \
     \n    [ \
     \n      "user", \
@@ -110,6 +110,7 @@ RUN echo '{ \
     \n    [ \
     \n      "install", \
     \n      [ \
+    \n        "apt_opts=--quiet", \
     \n        "vim", \
     \n        "libopenmpi-dev" \
     \n      ] \
