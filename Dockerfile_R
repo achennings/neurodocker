@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 20:20:23 UTC
+# Timestamp: 2021/05/24 20:38:20 UTC
 
 FROM neurodebian:focal-non-free
 
@@ -44,8 +44,7 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
 
-RUN test "$(getent passwd neuro)" || useradd --no-user-group --create-home --shell /bin/bash neuro
-USER neuro
+USER root
 
 RUN apt-get update -qq \
     && apt-get install -y --quiet \
@@ -105,7 +104,7 @@ RUN echo '{ \
     \n    ], \
     \n    [ \
     \n      "user", \
-    \n      "neuro" \
+    \n      "root" \
     \n    ], \
     \n    [ \
     \n      "install", \
