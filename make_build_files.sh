@@ -22,12 +22,10 @@ generate_docker() {
 }
 generate_docker_r() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=neurodebian:buster --pkg-manager=apt \
+    --base=ubuntu:18.04 --pkg-manager=apt \
     --user=neuro \
-    --run-bash "apt remove r-base-core && apt install -t buster-cran40 r-base" \
-    --install vim libopenmpi-dev r-base-dev \
-    --afni version=latest method=binaries \
-    --run-bash "rPkgsInstall -pkgs ALL"
+    --install vim libopenmpi-dev \
+    --afni version=latest install_r=true install_r_pkgs=true method=binaries \
 }
 # generate_singularity () {
 #  sudo docker run repronim/neurodocker:master generate singularity \
