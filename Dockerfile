@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/23 15:51:55 UTC
+# Timestamp: 2021/05/24 02:17:39 UTC
 
 FROM debian:stretch
 
@@ -92,6 +92,8 @@ RUN apt-get update -qq \
     && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
     | tar -xz -C /opt/afni-latest --strip-components 1 \
     && PATH=$PATH:/opt/afni-latest rPkgsInstall -pkgs ALL
+
+RUN bash -c 'rPkgsInstall -pkgs ALL -site 'http://cloud.r-project.org''
 
 ENV FSLDIR="/opt/fsl-6.0.4" \
     PATH="/opt/fsl-6.0.4/bin:$PATH" \
@@ -242,8 +244,8 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
     && conda config --system --set auto_update_conda false \
     && conda config --system --set show_channel_urls true \
     && sync && conda clean -y --all && sync \
-    && conda create -y -q --name neuro \
-    && conda install -y -q --name neuro \
+    && conda create -y -q --name py3 \
+    && conda install -y -q --name py3 \
            "python=3.8" \
            "matplotlib" \
            "numpy" \
@@ -254,7 +256,7 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
            "seaborn" \
            "traits" \
     && sync && conda clean -y --all && sync \
-    && bash -c "source activate neuro \
+    && bash -c "source activate py3 \
     &&   pip install --no-cache-dir  \
              "nipype" \
              "pingouin" \
@@ -262,11 +264,11 @@ RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
              "ipython"" \
     && rm -rf ~/.cache/pip/* \
     && sync \
-    && sed -i '$isource activate neuro' $ND_ENTRYPOINT
+    && sed -i '$isource activate py3' $ND_ENTRYPOINT
 
 RUN sed -i '$isource /opt/freesurfer-7.1.1/SetUpFreeSurfer.sh' $ND_ENTRYPOINT
 
-RUN sed -i '$iconda activate neuro' $ND_ENTRYPOINT
+RUN sed -i '$isource activate py3' $ND_ENTRYPOINT
 
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
@@ -290,6 +292,10 @@ RUN echo '{ \
     \n        "install_r_pkgs": "TRUE", \
     \n        "method": "binaries" \
     \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "rPkgsInstall -pkgs ALL -site '"'"'http://cloud.r-project.org'"'"'" \
     \n    ], \
     \n    [ \
     \n      "fsl", \
@@ -353,7 +359,7 @@ RUN echo '{ \
     \n    [ \
     \n      "miniconda", \
     \n      { \
-    \n        "create_env": "neuro", \
+    \n        "create_env": "py3", \
     \n        "activate": true, \
     \n        "conda_install": [ \
     \n          "python=3.8", \
@@ -380,7 +386,7 @@ RUN echo '{ \
     \n    ], \
     \n    [ \
     \n      "add_to_entrypoint", \
-    \n      "conda activate neuro" \
+    \n      "source activate py3" \
     \n    ] \
     \n  ] \
     \n}' > /neurodocker/neurodocker_specs.json
