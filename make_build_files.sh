@@ -21,9 +21,9 @@ generate_docker() {
 }
 generate_docker_r() {
   sudo docker run repronim/neurodocker:master generate docker \
-    --base=neurodebian:nd16.04 --pkg-manager=apt \
-    --install apt_opts="--quiet --install-suggests --yes" vim libopenmpi-dev r-base r-base-dev \
-    --afni version=latest install_r_pkgs=true method=binaries
+    --base=neurodebian:stretch --pkg-manager=apt \
+    --install apt_opts="--quiet" vim libopenmpi-dev\
+    --afni version=latest install_r=true install_r_pkgs=true method=binaries
 }
 # generate_singularity () {
 #  sudo docker run repronim/neurodocker:master generate singularity \
