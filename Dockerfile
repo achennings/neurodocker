@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 23:44:26 UTC
+# Timestamp: 2021/05/25 19:16:12 UTC
 
 FROM neurodebian:buster
 
@@ -48,6 +48,11 @@ RUN apt-get update -qq \
     && apt-get install -y --quiet \
            vim \
            libopenmpi-dev \
+           libcurl4-openssl-dev \
+           libxml2-dev \
+           libssl-dev \
+           libudunits2-dev \
+           libv8-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -62,12 +67,9 @@ RUN apt-get update -qq \
            libglw1-mesa \
            libgomp1 \
            libjpeg62 \
-           libnlopt-dev \
            libxm4 \
            multiarch-support \
            netpbm \
-           r-base \
-           r-base-dev \
            tcsh \
            xfonts-base \
            xvfb \
@@ -92,7 +94,11 @@ RUN apt-get update -qq \
     && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
     | tar -xz -C /opt/afni-latest --strip-components 1
 
-RUN bash -c 'rPkgsInstall -pkgs 'car,afex,phia,snow,nlme,lmerTest,paran,brms,corrplot,metafor' -update'
+RUN bash -c 'apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF' && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev'
+
+RUN bash -c 'rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/''
+
+RUN bash -c 'apt -y upgrade'
 
 ENV FSLDIR="/opt/fsl-6.0.4" \
     PATH="/opt/fsl-6.0.4/bin:$PATH" \
@@ -264,10 +270,6 @@ RUN export TMPDIR="$(mktemp -d)" \
     && /opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 quit \
     && sed -i '$iexport SPMMCRCMD=\"/opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 script\"' $ND_ENTRYPOINT
 
-COPY ["conn20b.zip", "/home/docs/conn20b.zip"]
-
-RUN bash -c 'tar xf /home/docs/conn20b.zip -C /opt/conn'
-
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
 RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
@@ -313,20 +315,32 @@ RUN echo '{ \
     \n      [ \
     \n        "apt_opts=--quiet", \
     \n        "vim", \
-    \n        "libopenmpi-dev" \
+    \n        "libopenmpi-dev", \
+    \n        "libcurl4-openssl-dev", \
+    \n        "libxml2-dev", \
+    \n        "libssl-dev", \
+    \n        "libudunits2-dev", \
+    \n        "libv8-dev" \
     \n      ] \
     \n    ], \
     \n    [ \
     \n      "afni", \
     \n      { \
     \n        "version": "latest", \
-    \n        "method": "binaries", \
-    \n        "install_r": "true" \
+    \n        "method": "binaries" \
     \n      } \
     \n    ], \
     \n    [ \
     \n      "run_bash", \
-    \n      "rPkgsInstall -pkgs '"'"'car,afex,phia,snow,nlme,lmerTest,paran,brms,corrplot,metafor'"'"' -update" \
+    \n      "apt-key adv --keyserver keys.gnupg.net --recv-key '"'"'E19F5F87128899B192B1A2C2AD5F960A256A04AF'"'"' && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "rPkgsInstall -pkgs ALL -site '"'"'https://cran.microsoft.com/'"'"'" \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "apt -y upgrade" \
     \n    ], \
     \n    [ \
     \n      "fsl", \
@@ -388,17 +402,6 @@ RUN echo '{ \
     \n      { \
     \n        "version": "r7771" \
     \n      } \
-    \n    ], \
-    \n    [ \
-    \n      "copy", \
-    \n      [ \
-    \n        "conn20b.zip", \
-    \n        "/home/docs/conn20b.zip" \
-    \n      ] \
-    \n    ], \
-    \n    [ \
-    \n      "run_bash", \
-    \n      "tar xf /home/docs/conn20b.zip -C /opt/conn" \
     \n    ], \
     \n    [ \
     \n      "miniconda", \
