@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 22:42:36 UTC
+# Timestamp: 2021/05/24 23:44:29 UTC
 
 FROM neurodebian:buster
 
@@ -90,8 +90,9 @@ RUN apt-get update -qq \
     && echo "Downloading AFNI ..." \
     && mkdir -p /opt/afni-latest \
     && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
-    | tar -xz -C /opt/afni-latest --strip-components 1 \
-    && PATH=$PATH:/opt/afni-latest rPkgsInstall -pkgs ALL
+    | tar -xz -C /opt/afni-latest --strip-components 1
+
+RUN bash -c 'rPkgsInstall -pkgs 'car,afex,phia,snow,nlme,lmerTest,paran,brms,corrplot,metafor' -update'
 
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
@@ -113,9 +114,12 @@ RUN echo '{ \
     \n      { \
     \n        "version": "latest", \
     \n        "install_r": "true", \
-    \n        "install_r_pkgs": "true", \
     \n        "method": "binaries" \
     \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "rPkgsInstall -pkgs '"'"'car,afex,phia,snow,nlme,lmerTest,paran,brms,corrplot,metafor'"'"' -update" \
     \n    ] \
     \n  ] \
     \n}' > /neurodocker/neurodocker_specs.json

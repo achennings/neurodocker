@@ -7,9 +7,9 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/24 22:42:34 UTC
+# Timestamp: 2021/05/24 23:44:26 UTC
 
-FROM neurodebian:nd16.04
+FROM neurodebian:buster
 
 USER root
 
@@ -43,9 +43,6 @@ RUN export ND_ENTRYPOINT="/neurodocker/startup.sh" \
     && chmod -R 777 /neurodocker && chmod a+s /neurodocker
 
 ENTRYPOINT ["/neurodocker/startup.sh"]
-
-RUN test "$(getent passwd neuro)" || useradd --no-user-group --create-home --shell /bin/bash neuro
-USER neuro
 
 RUN apt-get update -qq \
     && apt-get install -y --quiet \
@@ -93,8 +90,9 @@ RUN apt-get update -qq \
     && echo "Downloading AFNI ..." \
     && mkdir -p /opt/afni-latest \
     && curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
-    | tar -xz -C /opt/afni-latest --strip-components 1 \
-    && PATH=$PATH:/opt/afni-latest rPkgsInstall -pkgs ALL
+    | tar -xz -C /opt/afni-latest --strip-components 1
+
+RUN bash -c 'rPkgsInstall -pkgs 'car,afex,phia,snow,nlme,lmerTest,paran,brms,corrplot,metafor' -update'
 
 ENV FSLDIR="/opt/fsl-6.0.4" \
     PATH="/opt/fsl-6.0.4/bin:$PATH" \
@@ -205,9 +203,9 @@ RUN apt-get update -qq \
          --exclude='freesurfer/trctrain' \
     && sed -i '$isource "/opt/freesurfer-7.1.1/SetUpFreeSurfer.sh"' "$ND_ENTRYPOINT"
 
-COPY ["license.txt", "/home/neuro/license.txt"]
+COPY ["license.txt", "/home/docs/license.txt"]
 
-ENV FS_LICENSE="/home/neuro/license.txt"
+ENV FS_LICENSE="/home/docs/license.txt"
 
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/opt/matlabmcr-2018a/v94/runtime/glnxa64:/opt/matlabmcr-2018a/v94/bin/glnxa64:/opt/matlabmcr-2018a/v94/sys/os/glnxa64:/opt/matlabmcr-2018a/v94/extern/bin/glnxa64" \
     MATLABCMD="/opt/matlabmcr-2018a/v94/toolbox/matlab"
@@ -228,6 +226,47 @@ RUN export TMPDIR="$(mktemp -d)" \
     && "$TMPDIR/mcrtmp/install" -destinationFolder /opt/matlabmcr-2018a -mode silent -agreeToLicense yes \
     && rm -rf "$TMPDIR" \
     && unset TMPDIR
+
+ENV FORCE_SPMMCR="1" \
+    SPM_HTML_BROWSER="0" \
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/opt/matlabmcr-2010a/v713/runtime/glnxa64:/opt/matlabmcr-2010a/v713/bin/glnxa64:/opt/matlabmcr-2010a/v713/sys/os/glnxa64:/opt/matlabmcr-2010a/v713/extern/bin/glnxa64" \
+    MATLABCMD="/opt/matlabmcr-2010a/v713/toolbox/matlab"
+RUN export TMPDIR="$(mktemp -d)" \
+    && apt-get update -qq \
+    && apt-get install -y -q --no-install-recommends \
+           bc \
+           libncurses5 \
+           libxext6 \
+           libxmu6 \
+           libxpm-dev \
+           libxt6 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "Downloading MATLAB Compiler Runtime ..." \
+    && curl -sSL --retry 5 -o /tmp/toinstall.deb http://mirrors.kernel.org/debian/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb \
+    && dpkg -i /tmp/toinstall.deb \
+    && rm /tmp/toinstall.deb \
+    && apt-get install -f \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL --retry 5 -o "$TMPDIR/MCRInstaller.bin" https://dl.dropbox.com/s/zz6me0c3v4yq5fd/MCR_R2010a_glnxa64_installer.bin \
+    && chmod +x "$TMPDIR/MCRInstaller.bin" \
+    && "$TMPDIR/MCRInstaller.bin" -silent -P installLocation="/opt/matlabmcr-2010a" \
+    && rm -rf "$TMPDIR" \
+    && unset TMPDIR \
+    && echo "Downloading standalone SPM ..." \
+    && curl -fsSL --retry 5 -o /tmp/spm12.zip https://www.fil.ion.ucl.ac.uk/spm/download/restricted/utopia/previous/spm12_r7771_R2010a.zip \
+    && unzip -q /tmp/spm12.zip -d /tmp \
+    && mkdir -p /opt/spm12-r7771 \
+    && mv /tmp/spm12/* /opt/spm12-r7771/ \
+    && chmod -R 777 /opt/spm12-r7771 \
+    && rm -rf /tmp/spm* \
+    && /opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 quit \
+    && sed -i '$iexport SPMMCRCMD=\"/opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 script\"' $ND_ENTRYPOINT
+
+COPY ["conn20b.zip", "/home/docs/conn20b.zip"]
+
+RUN bash -c 'tar xf /home/docs/conn20b.zip -C /opt/conn'
 
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
@@ -267,11 +306,7 @@ RUN echo '{ \
     \n  "instructions": [ \
     \n    [ \
     \n      "base", \
-    \n      "neurodebian:nd16.04" \
-    \n    ], \
-    \n    [ \
-    \n      "user", \
-    \n      "neuro" \
+    \n      "neurodebian:buster" \
     \n    ], \
     \n    [ \
     \n      "install", \
@@ -286,9 +321,12 @@ RUN echo '{ \
     \n      { \
     \n        "version": "latest", \
     \n        "method": "binaries", \
-    \n        "install_r": "true", \
-    \n        "install_r_pkgs": "true" \
+    \n        "install_r": "true" \
     \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "rPkgsInstall -pkgs '"'"'car,afex,phia,snow,nlme,lmerTest,paran,brms,corrplot,metafor'"'"' -update" \
     \n    ], \
     \n    [ \
     \n      "fsl", \
@@ -329,13 +367,13 @@ RUN echo '{ \
     \n      "copy", \
     \n      [ \
     \n        "license.txt", \
-    \n        "/home/neuro/license.txt" \
+    \n        "/home/docs/license.txt" \
     \n      ] \
     \n    ], \
     \n    [ \
     \n      "env", \
     \n      { \
-    \n        "FS_LICENSE": "/home/neuro/license.txt" \
+    \n        "FS_LICENSE": "/home/docs/license.txt" \
     \n      } \
     \n    ], \
     \n    [ \
@@ -344,6 +382,23 @@ RUN echo '{ \
     \n        "version": "2018a", \
     \n        "method": "binaries" \
     \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "spm12", \
+    \n      { \
+    \n        "version": "r7771" \
+    \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "copy", \
+    \n      [ \
+    \n        "conn20b.zip", \
+    \n        "/home/docs/conn20b.zip" \
+    \n      ] \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "tar xf /home/docs/conn20b.zip -C /opt/conn" \
     \n    ], \
     \n    [ \
     \n      "miniconda", \
