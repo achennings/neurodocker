@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/25 19:16:12 UTC
+# Timestamp: 2021/05/25 21:29:31 UTC
 
 FROM neurodebian:buster
 
@@ -233,43 +233,6 @@ RUN export TMPDIR="$(mktemp -d)" \
     && rm -rf "$TMPDIR" \
     && unset TMPDIR
 
-ENV FORCE_SPMMCR="1" \
-    SPM_HTML_BROWSER="0" \
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/opt/matlabmcr-2010a/v713/runtime/glnxa64:/opt/matlabmcr-2010a/v713/bin/glnxa64:/opt/matlabmcr-2010a/v713/sys/os/glnxa64:/opt/matlabmcr-2010a/v713/extern/bin/glnxa64" \
-    MATLABCMD="/opt/matlabmcr-2010a/v713/toolbox/matlab"
-RUN export TMPDIR="$(mktemp -d)" \
-    && apt-get update -qq \
-    && apt-get install -y -q --no-install-recommends \
-           bc \
-           libncurses5 \
-           libxext6 \
-           libxmu6 \
-           libxpm-dev \
-           libxt6 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && echo "Downloading MATLAB Compiler Runtime ..." \
-    && curl -sSL --retry 5 -o /tmp/toinstall.deb http://mirrors.kernel.org/debian/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb \
-    && dpkg -i /tmp/toinstall.deb \
-    && rm /tmp/toinstall.deb \
-    && apt-get install -f \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL --retry 5 -o "$TMPDIR/MCRInstaller.bin" https://dl.dropbox.com/s/zz6me0c3v4yq5fd/MCR_R2010a_glnxa64_installer.bin \
-    && chmod +x "$TMPDIR/MCRInstaller.bin" \
-    && "$TMPDIR/MCRInstaller.bin" -silent -P installLocation="/opt/matlabmcr-2010a" \
-    && rm -rf "$TMPDIR" \
-    && unset TMPDIR \
-    && echo "Downloading standalone SPM ..." \
-    && curl -fsSL --retry 5 -o /tmp/spm12.zip https://www.fil.ion.ucl.ac.uk/spm/download/restricted/utopia/previous/spm12_r7771_R2010a.zip \
-    && unzip -q /tmp/spm12.zip -d /tmp \
-    && mkdir -p /opt/spm12-r7771 \
-    && mv /tmp/spm12/* /opt/spm12-r7771/ \
-    && chmod -R 777 /opt/spm12-r7771 \
-    && rm -rf /tmp/spm* \
-    && /opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 quit \
-    && sed -i '$iexport SPMMCRCMD=\"/opt/spm12-r7771/run_spm12.sh /opt/matlabmcr-2010a/v713 script\"' $ND_ENTRYPOINT
-
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
 RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
@@ -395,12 +358,6 @@ RUN echo '{ \
     \n      { \
     \n        "version": "2018a", \
     \n        "method": "binaries" \
-    \n      } \
-    \n    ], \
-    \n    [ \
-    \n      "spm12", \
-    \n      { \
-    \n        "version": "r7771" \
     \n      } \
     \n    ], \
     \n    [ \

@@ -15,7 +15,6 @@ generate_docker() {
     --copy license.txt /home/docs/license.txt \
     --env FS_LICENSE=/home/docs/license.txt \
     --matlabmcr version=2018a method=binaries \
-    --spm12 version=r7771 \
     --miniconda \
           use_env=base \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
