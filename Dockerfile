@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/25 21:29:31 UTC
+# Timestamp: 2021/05/29 16:14:41 UTC
 
 FROM neurodebian:buster
 
@@ -140,6 +140,8 @@ RUN apt-get update -qq \
     && sed -i '$iecho If you are considering commercial use of this container, please consult the relevant license:' $ND_ENTRYPOINT \
     && sed -i '$iecho https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Licence' $ND_ENTRYPOINT \
     && sed -i '$isource $FSLDIR/etc/fslconf/fsl.sh' $ND_ENTRYPOINT
+
+RUN bash -c 'bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4'
 
 ENV ANTSPATH="/opt/ants-2.3.1" \
     PATH="/opt/ants-2.3.1:$PATH"
@@ -311,6 +313,10 @@ RUN echo '{ \
     \n        "version": "6.0.4", \
     \n        "method": "binaries" \
     \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4" \
     \n    ], \
     \n    [ \
     \n      "ants", \

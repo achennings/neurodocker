@@ -8,6 +8,7 @@ generate_docker() {
     --run-bash "rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/'" \
     --run-bash "apt -y upgrade" \
     --fsl version=6.0.4 method=binaries \
+    --run-bash "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4" \
     --ants version=2.3.1 method=binaries \
     --dcm2niix version=2bf2e482aec8e9959c6bd8e833cdccba3607c617 method=source \
     --convert3d version=1.0.0 method=binaries \
@@ -25,11 +26,3 @@ generate_docker() {
 # }
 generate_docker > Dockerfile
 # generate_singularity > Singularity
-generate_docker_fslpy() {
-  sudo docker run repronim/neurodocker:master generate docker \
-    --base=neurodebian:buster --pkg-manager=apt \
-    --fsl version=6.0.4 method=binaries \
-    --run-bash "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4"
-}
-
-generate_docker_fslpy > Dockerfile_fslpy
