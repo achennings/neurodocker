@@ -29,7 +29,7 @@ generate_docker_fslpy() {
   sudo docker run repronim/neurodocker:master generate docker \
     --base=neurodebian:buster --pkg-manager=apt \
     --fsl version=6.0.4 method=binaries \
-    --run-bash "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4 && /opt/fsl-6.0.4/fslpython/bin/conda install -n fslpython -c conda-forge -y"
+    --run-bash "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4"
 }
 
 generate_docker_fslpy > Dockerfile_fslpy

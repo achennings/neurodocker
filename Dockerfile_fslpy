@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/05/28 23:15:53 UTC
+# Timestamp: 2021/05/29 01:45:44 UTC
 
 FROM neurodebian:buster
 
@@ -85,7 +85,7 @@ RUN apt-get update -qq \
     && sed -i '$iecho https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Licence' $ND_ENTRYPOINT \
     && sed -i '$isource $FSLDIR/etc/fslconf/fsl.sh' $ND_ENTRYPOINT
 
-RUN bash -c 'bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4 && /opt/fsl-6.0.4/fslpython/bin/conda install -n fslpython -c conda-forge -y'
+RUN bash -c 'bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4'
 
 RUN echo '{ \
     \n  "pkg_manager": "apt", \
@@ -103,7 +103,7 @@ RUN echo '{ \
     \n    ], \
     \n    [ \
     \n      "run_bash", \
-    \n      "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4 && /opt/fsl-6.0.4/fslpython/bin/conda install -n fslpython -c conda-forge -y" \
+    \n      "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4" \
     \n    ] \
     \n  ] \
     \n}' > /neurodocker/neurodocker_specs.json
