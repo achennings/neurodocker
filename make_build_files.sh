@@ -15,11 +15,12 @@ generate_docker() {
     --freesurfer version=7.1.1 method=binaries \
     --copy license.txt /home/docs/license.txt \
     --env FS_LICENSE=/home/docs/license.txt \
-    --matlabmcr version=2018a method=binaries \
+    --matlabmcr version=2014b method=binaries install_path=/opt/freesurfer-7.1.1/MCRv84 \
     --miniconda \
           use_env=base \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
-          pip_install='nipype pingouin brainiak ipython'
+          pip_install='nipype pingouin brainiak ipython' \
+    --user neuro
 }
 # generate_singularity () {
 #  sudo docker run repronim/neurodocker:master generate singularity \
