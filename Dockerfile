@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/06/01 19:48:56 UTC
+# Timestamp: 2021/06/02 20:09:00 UTC
 
 FROM neurodebian:buster
 
@@ -235,6 +235,8 @@ RUN export TMPDIR="$(mktemp -d)" \
     && rm -rf "$TMPDIR" \
     && unset TMPDIR
 
+RUN bash -c 'mv /opt/freesurfer-7.1.1/MCRv84/v84 /opt/freesurfer-7.1.1/MCRv84'
+
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
 RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
@@ -369,6 +371,10 @@ RUN echo '{ \
     \n        "method": "binaries", \
     \n        "install_path": "/opt/freesurfer-7.1.1/MCRv84" \
     \n      } \
+    \n    ], \
+    \n    [ \
+    \n      "run_bash", \
+    \n      "mv /opt/freesurfer-7.1.1/MCRv84/v84 /opt/freesurfer-7.1.1/MCRv84" \
     \n    ], \
     \n    [ \
     \n      "miniconda", \
