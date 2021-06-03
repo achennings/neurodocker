@@ -15,8 +15,7 @@ generate_docker() {
     --freesurfer version=7.1.1 method=binaries \
     --copy license.txt /home/docs/license.txt \
     --env FS_LICENSE=/home/docs/license.txt \
-    --matlabmcr version=2014b method=binaries install_path=/opt/freesurfer-7.1.1/MCRv84 \
-    --run-bash "mv /opt/freesurfer-7.1.1/MCRv84/v84 /opt/freesurfer-7.1.1/MCRv84" \
+    --run-bash "fs_install_mcr R2014b" \
     --miniconda \
           use_env=base \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \

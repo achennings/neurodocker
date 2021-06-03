@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/06/02 20:09:00 UTC
+# Timestamp: 2021/06/03 13:38:18 UTC
 
 FROM neurodebian:buster
 
@@ -215,27 +215,7 @@ COPY ["license.txt", "/home/docs/license.txt"]
 
 ENV FS_LICENSE="/home/docs/license.txt"
 
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu:/opt/freesurfer-7.1.1/MCRv84/v84/runtime/glnxa64:/opt/freesurfer-7.1.1/MCRv84/v84/bin/glnxa64:/opt/freesurfer-7.1.1/MCRv84/v84/sys/os/glnxa64:/opt/freesurfer-7.1.1/MCRv84/v84/extern/bin/glnxa64" \
-    MATLABCMD="/opt/freesurfer-7.1.1/MCRv84/v84/toolbox/matlab"
-RUN export TMPDIR="$(mktemp -d)" \
-    && apt-get update -qq \
-    && apt-get install -y -q --no-install-recommends \
-           bc \
-           libncurses5 \
-           libxext6 \
-           libxmu6 \
-           libxpm-dev \
-           libxt6 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && echo "Downloading MATLAB Compiler Runtime ..." \
-    && curl -fsSL --retry 5 -o "$TMPDIR/mcr.zip" https://ssd.mathworks.com/supportfiles/downloads/R2014b/deployment_files/R2014b/installers/glnxa64/MCR_R2014b_glnxa64_installer.zip \
-    && unzip -q "$TMPDIR/mcr.zip" -d "$TMPDIR/mcrtmp" \
-    && "$TMPDIR/mcrtmp/install" -destinationFolder /opt/freesurfer-7.1.1/MCRv84 -mode silent -agreeToLicense yes \
-    && rm -rf "$TMPDIR" \
-    && unset TMPDIR
-
-RUN bash -c 'mv /opt/freesurfer-7.1.1/MCRv84/v84 /opt/freesurfer-7.1.1/MCRv84'
+RUN bash -c 'fs_install_mcr R2014b'
 
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
@@ -365,16 +345,8 @@ RUN echo '{ \
     \n      } \
     \n    ], \
     \n    [ \
-    \n      "matlabmcr", \
-    \n      { \
-    \n        "version": "2014b", \
-    \n        "method": "binaries", \
-    \n        "install_path": "/opt/freesurfer-7.1.1/MCRv84" \
-    \n      } \
-    \n    ], \
-    \n    [ \
     \n      "run_bash", \
-    \n      "mv /opt/freesurfer-7.1.1/MCRv84/v84 /opt/freesurfer-7.1.1/MCRv84" \
+    \n      "fs_install_mcr R2014b" \
     \n    ], \
     \n    [ \
     \n      "miniconda", \
