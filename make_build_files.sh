@@ -16,6 +16,7 @@ generate_docker() {
     --copy license.txt /home/docs/license.txt \
     --env FS_LICENSE=/home/docs/license.txt \
     --run-bash "fs_install_mcr R2014b" \
+    --install libncurses5 \
     --miniconda \
           use_env=base \
           conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \

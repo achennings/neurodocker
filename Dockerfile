@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/06/03 13:38:18 UTC
+# Timestamp: 2021/06/03 17:45:19 UTC
 
 FROM neurodebian:buster
 
@@ -217,6 +217,12 @@ ENV FS_LICENSE="/home/docs/license.txt"
 
 RUN bash -c 'fs_install_mcr R2014b'
 
+RUN apt-get update -qq \
+    && apt-get install -y -q --no-install-recommends \
+           libncurses5 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
 RUN export PATH="/opt/miniconda-latest/bin:$PATH" \
@@ -347,6 +353,12 @@ RUN echo '{ \
     \n    [ \
     \n      "run_bash", \
     \n      "fs_install_mcr R2014b" \
+    \n    ], \
+    \n    [ \
+    \n      "install", \
+    \n      [ \
+    \n        "libncurses5" \
+    \n      ] \
     \n    ], \
     \n    [ \
     \n      "miniconda", \
