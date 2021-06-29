@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/06/29 22:34:59 UTC
+# Timestamp: 2021/06/29 22:57:48 UTC
 
 Bootstrap: docker
 From: neurodebian:buster
@@ -87,7 +87,7 @@ mkdir -p /opt/afni-latest
 curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
 | tar -xz -C /opt/afni-latest --strip-components 1
 
-bash -c 'apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev'
+bash -c 'apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev'
 
 bash -c 'rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/''
 
@@ -284,7 +284,7 @@ echo '{
 \n    ],
 \n    [
 \n      "run_bash",
-\n      "apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev"
+\n      "apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev"
 \n    ],
 \n    [
 \n      "run_bash",

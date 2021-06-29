@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/06/29 22:34:56 UTC
+# Timestamp: 2021/06/29 22:57:45 UTC
 
 FROM neurodebian:buster
 
@@ -96,7 +96,7 @@ RUN apt-get update -qq \
 
 COPY ["rhash.asc", "/home/docs/rhash.asc"]
 
-RUN bash -c 'apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev'
+RUN bash -c 'apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev'
 
 RUN bash -c 'rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/''
 
@@ -303,7 +303,7 @@ RUN echo '{ \
     \n    ], \
     \n    [ \
     \n      "run_bash", \
-    \n      "apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
+    \n      "apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
     \n    ], \
     \n    [ \
     \n      "run_bash", \

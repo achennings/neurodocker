@@ -5,7 +5,7 @@ generate_docker() {
     --install apt_opts="--quiet" vim libopenmpi-dev libcurl4-openssl-dev libxml2-dev libssl-dev libudunits2-dev libv8-dev \
     --afni version=latest method=binaries \
     --copy rhash.asc /home/docs/rhash.asc \
-    --run-bash "apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
+    --run-bash "apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
     --run-bash "rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/'" \
     --run-bash "apt -y upgrade" \
     --fsl version=6.0.4 method=binaries \
@@ -31,7 +31,7 @@ generate_singularity () {
     --install apt_opts="--quiet" vim libopenmpi-dev libcurl4-openssl-dev libxml2-dev libssl-dev libudunits2-dev libv8-dev \
     --afni version=latest method=binaries \
     --copy rhash.asc /home/docs/rhash.asc \
-    --run-bash "apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
+    --run-bash "apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
     --run-bash "rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/'" \
     --run-bash "apt -y upgrade" \
     --fsl version=6.0.4 method=binaries \
