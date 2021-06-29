@@ -4,7 +4,9 @@ generate_docker() {
     --base=neurodebian:buster --pkg-manager=apt \
     --install apt_opts="--quiet" vim libopenmpi-dev libcurl4-openssl-dev libxml2-dev libssl-dev libudunits2-dev libv8-dev \
     --afni version=latest method=binaries \
-    --run-bash "apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF' && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
+    --copy rhash.asc /home/docs/rhash.asc \
+    --run-bash "apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
+    FCAE2A0E115C3D8A
     --run-bash "rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/'" \
     --run-bash "apt -y upgrade" \
     --fsl version=6.0.4 method=binaries \
