@@ -7,7 +7,7 @@
 # 
 #     https://github.com/ReproNim/neurodocker
 # 
-# Timestamp: 2021/06/29 21:00:08 UTC
+# Timestamp: 2021/06/29 22:34:59 UTC
 
 Bootstrap: docker
 From: neurodebian:buster
@@ -87,7 +87,7 @@ mkdir -p /opt/afni-latest
 curl -fsSL --retry 5 https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \
 | tar -xz -C /opt/afni-latest --strip-components 1
 
-bash -c 'apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF' && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev'
+bash -c 'apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev'
 
 bash -c 'rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/''
 
@@ -276,8 +276,15 @@ echo '{
 \n      }
 \n    ],
 \n    [
+\n      "copy",
+\n      [
+\n        "rhash.asc",
+\n        "/home/docs/rhash.asc"
+\n      ]
+\n    ],
+\n    [
 \n      "run_bash",
-\n      "apt-key adv --keyserver keys.gnupg.net --recv-key '"'"'E19F5F87128899B192B1A2C2AD5F960A256A04AF'"'"' && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev"
+\n      "apt-key add /home/docs/rhas.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev"
 \n    ],
 \n    [
 \n      "run_bash",
@@ -413,6 +420,7 @@ export CONDA_DIR="/opt/miniconda-latest"
 export PATH="/opt/miniconda-latest/bin:$PATH"
 
 %files
+rhash.asc /home/docs/rhash.asc
 license.txt /home/docs/license.txt
 
 %runscript
