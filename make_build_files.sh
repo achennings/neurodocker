@@ -27,8 +27,8 @@ generate_docker() {
 }
 generate_singularity () {
   sudo docker run repronim/neurodocker:master generate singularity \
-    --base=neurodebian:buster --pkg-manager=apt \
-    --install apt_opts="--quiet" vim libopenmpi-dev libcurl4-openssl-dev libxml2-dev libssl-dev libudunits2-dev libv8-dev \
+    --base=ubuntu:20.04 --pkg-manager=apt \
+    --install apt_opts="--quiet" vim libopenmpi-dev libcurl4-openssl-dev libxml2-dev libssl-dev libudunits2-dev libv8-dev cmake \
     --afni version=latest method=binaries \
     --copy rhash.asc /home/docs/rhash.asc \
     --run-bash "apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
