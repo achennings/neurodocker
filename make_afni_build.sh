@@ -1,6 +1,6 @@
 #!/bin/bash
-generate_singularity () {
-  neurodocker generate singularity \
+generate () {
+  neurodocker generate docker \
     --base=ubuntu:20.04 --pkg-manager=apt \
     --run-bash "add-apt-repository universe" \
     --run-bash "add-apt-repository -y ppa:marutter/rrutter4.0" \
@@ -12,4 +12,4 @@ generate_singularity () {
     --run-bash "apt -y upgrade" \
     --user neuro
 }
-generate_singularity > Singularity
+generate > Dockerfile
