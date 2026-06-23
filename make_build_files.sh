@@ -60,4 +60,32 @@ generate_spec() {
 generate_spec docker      > Dockerfile
 generate_spec singularity > Singularity
 
+# --- Post-process the Singularity recipe for unprivileged (rootless) builds ---
+#
+# When building with `apptainer build --fakeroot` on an HPC node that does NOT
+# have a /etc/subuid + /etc/subgid range configured for the user, only a single
+# UID is mapped into the build namespace. apt then fails when it tries to drop
+# privileges to its sandbox user `_apt` (uid 100):
+#     E: setegid/seteuid ... Invalid argument
+#     E: Method http has died unexpectedly!
+# Disabling the apt sandbox makes apt run as the (namespace) root user instead.
+# This must be set before Neurodocker's first `apt-get update`, i.e. at the very
+# top of %post.
+python3 - "$PWD/Singularity" <<'PY'
+import sys
+path = sys.argv[1]
+inject = 'echo \'APT::Sandbox::User "root";\' > /etc/apt/apt.conf.d/99-disable-sandbox\n'
+with open(path) as f:
+    lines = f.readlines()
+out, done = [], False
+for line in lines:
+    out.append(line)
+    if line.strip() == "%post" and not done:
+        out.append(inject)
+        done = True
+with open(path, "w") as f:
+    f.writelines(out)
+print("Disabled apt sandbox in Singularity %post" if done else "WARNING: %post not found")
+PY
+
 echo "Wrote Dockerfile and Singularity."

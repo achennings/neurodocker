@@ -50,6 +50,7 @@ export PATH="/opt/miniconda-latest/bin:$PATH"
 export FS_LICENSE="/opt/freesurfer.license"
 
 %post
+echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/99-disable-sandbox
 export ND_ENTRYPOINT="/neurodocker/startup.sh"
 apt-get update -qq
 apt-get install -y -q --no-install-recommends \
