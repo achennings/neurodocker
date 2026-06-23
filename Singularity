@@ -103,6 +103,8 @@ apt-get install -y -q --no-install-recommends \
     wget
 rm -rf /var/lib/apt/lists/*
 
+bash -c 'curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && curl -fsSL --retry 5 -o /tmp/libpng12.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%2Bdeb7u2_amd64.deb && dpkg -i --force-depends /tmp/libxp6.deb /tmp/libpng12.deb && rm -f /tmp/libxp6.deb /tmp/libpng12.deb && ldconfig'
+
 apt-get update -qq
 apt-get install -y -q --no-install-recommends \
     ca-certificates \
@@ -128,13 +130,6 @@ apt-get install -y -q --no-install-recommends \
     xfonts-base \
     xvfb
 rm -rf /var/lib/apt/lists/*
-_reproenv_tmppath="$(mktemp -t tmp.XXXXXXXXXX.deb)"
-curl -fsSL --retry 5 -o "${_reproenv_tmppath}" http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb
-apt-get install --yes -q "${_reproenv_tmppath}"
-rm "${_reproenv_tmppath}"
-apt-get update -qq
-apt-get install --yes --quiet --fix-missing
-rm -rf /var/lib/apt/lists/*
 apt-get update -qq
 apt-get install -y -q --no-install-recommends \
     python3
@@ -157,8 +152,6 @@ apt-get install -y -q --no-install-recommends \
 rm -rf /var/lib/apt/lists/*
   export PATH="/opt/afni-latest:$PATH"
 rPkgsInstall -pkgs ALL
-
-bash -c 'curl -fsSL --retry 5 -o /tmp/libpng12.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%2Bdeb7u2_amd64.deb && dpkg -i --force-depends /tmp/libpng12.deb && rm /tmp/libpng12.deb && ldconfig'
 
 apt-get update -qq
 apt-get install -y -q --no-install-recommends \
@@ -365,6 +358,12 @@ printf '{ \
       } \
     }, \
     { \
+      "name": "run", \
+      "kwds": { \
+        "command": "bash -c '"'"'curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && curl -fsSL --retry 5 -o /tmp/libpng12.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%%2Bdeb7u2_amd64.deb && dpkg -i --force-depends /tmp/libxp6.deb /tmp/libpng12.deb && rm -f /tmp/libxp6.deb /tmp/libpng12.deb && ldconfig'"'"'" \
+      } \
+    }, \
+    { \
       "name": "env", \
       "kwds": { \
         "PATH": "/opt/afni-latest:$PATH", \
@@ -374,13 +373,7 @@ printf '{ \
     { \
       "name": "run", \
       "kwds": { \
-        "command": "apt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    ca-certificates \\\\\\n    cmake \\\\\\n    curl \\\\\\n    ed \\\\\\n    gsl-bin \\\\\\n    libcurl4-openssl-dev \\\\\\n    libgl1-mesa-dri \\\\\\n    libglib2.0-0 \\\\\\n    libglu1-mesa-dev \\\\\\n    libglw1-mesa \\\\\\n    libgomp1 \\\\\\n    libjpeg-turbo8-dev \\\\\\n    libjpeg62 \\\\\\n    libssl-dev \\\\\\n    libudunits2-dev \\\\\\n    libxm4 \\\\\\n    netpbm \\\\\\n    python-is-python3 \\\\\\n    python3-pip \\\\\\n    tcsh \\\\\\n    xfonts-base \\\\\\n    xvfb\\nrm -rf /var/lib/apt/lists/*\\n_reproenv_tmppath=\\"$\(mktemp -t tmp.XXXXXXXXXX.deb\)\\"\\ncurl -fsSL --retry 5 -o \\"${_reproenv_tmppath}\\" http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb\\napt-get install --yes -q \\"${_reproenv_tmppath}\\"\\nrm \\"${_reproenv_tmppath}\\"\\napt-get update -qq\\napt-get install --yes --quiet --fix-missing\\nrm -rf /var/lib/apt/lists/*\\napt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    python3\\nrm -rf /var/lib/apt/lists/*\\npip3 install matplotlib\\ngsl_path=\\"$\(find / -name '"'"'libgsl.so.??'"'"' || printf '"'"''"'"'\)\\"\\nif [ -n \\"$gsl_path\\" ]; then \\\\\\n  ln -sfv \\"$gsl_path\\" \\"$\(dirname $gsl_path\)/libgsl.so.0\\"; \\\\\\nfi\\nldconfig\\nmkdir -p /opt/afni-latest\\necho \\"Downloading AFNI ...\\"\\ncurl -fL https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \\\\\\n| tar -xz -C /opt/afni-latest --strip-components 1\\n  apt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    libnlopt-dev \\\\\\n    r-base \\\\\\n    r-base-dev\\nrm -rf /var/lib/apt/lists/*\\n  export PATH=\\"/opt/afni-latest:$PATH\\"\\nrPkgsInstall -pkgs ALL" \
-      } \
-    }, \
-    { \
-      "name": "run", \
-      "kwds": { \
-        "command": "bash -c '"'"'curl -fsSL --retry 5 -o /tmp/libpng12.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%%2Bdeb7u2_amd64.deb && dpkg -i --force-depends /tmp/libpng12.deb && rm /tmp/libpng12.deb && ldconfig'"'"'" \
+        "command": "apt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    ca-certificates \\\\\\n    cmake \\\\\\n    curl \\\\\\n    ed \\\\\\n    gsl-bin \\\\\\n    libcurl4-openssl-dev \\\\\\n    libgl1-mesa-dri \\\\\\n    libglib2.0-0 \\\\\\n    libglu1-mesa-dev \\\\\\n    libglw1-mesa \\\\\\n    libgomp1 \\\\\\n    libjpeg-turbo8-dev \\\\\\n    libjpeg62 \\\\\\n    libssl-dev \\\\\\n    libudunits2-dev \\\\\\n    libxm4 \\\\\\n    netpbm \\\\\\n    python-is-python3 \\\\\\n    python3-pip \\\\\\n    tcsh \\\\\\n    xfonts-base \\\\\\n    xvfb\\nrm -rf /var/lib/apt/lists/*\\napt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    python3\\nrm -rf /var/lib/apt/lists/*\\npip3 install matplotlib\\ngsl_path=\\"$\(find / -name '"'"'libgsl.so.??'"'"' || printf '"'"''"'"'\)\\"\\nif [ -n \\"$gsl_path\\" ]; then \\\\\\n  ln -sfv \\"$gsl_path\\" \\"$\(dirname $gsl_path\)/libgsl.so.0\\"; \\\\\\nfi\\nldconfig\\nmkdir -p /opt/afni-latest\\necho \\"Downloading AFNI ...\\"\\ncurl -fL https://afni.nimh.nih.gov/pub/dist/tgz/linux_openmp_64.tgz \\\\\\n| tar -xz -C /opt/afni-latest --strip-components 1\\n  apt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    libnlopt-dev \\\\\\n    r-base \\\\\\n    r-base-dev\\nrm -rf /var/lib/apt/lists/*\\n  export PATH=\\"/opt/afni-latest:$PATH\\"\\nrPkgsInstall -pkgs ALL" \
       } \
     }, \
     { \

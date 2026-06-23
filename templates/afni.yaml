@@ -71,8 +71,6 @@ binaries:
         -   which
         -   unzip
         -   ncurses-compat-libs
-        debs:
-        -   http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb
     instructions: |
         {{ self.install_dependencies() }}
         {% if self.install_python3.lower() in ["true", "1", "y"] -%}
@@ -160,8 +158,6 @@ source:
         -   tcsh
         -   which
         -   zlib-devel
-        debs:
-        -   http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb
     instructions: |
         {{ self.install_dependencies() }}
         {%- if self.install_python3.lower() in ["true", "1", "y"] %}
