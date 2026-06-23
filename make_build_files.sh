@@ -65,6 +65,7 @@ generate_spec() {
     --miniconda \
         version=latest \
         env_name=neuro \
+        env_exists=false \
         conda_install="python=3.11 matplotlib numpy pandas scikit-learn scipy seaborn nilearn traits jupyterlab" \
         pip_install="nipype pingouin pybids" \
     --env FS_LICENSE=/opt/freesurfer.license
