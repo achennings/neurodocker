@@ -33,7 +33,7 @@ generate_spec() {
 
   "$NEURODOCKER" generate "$target" \
     --pkg-manager apt \
-    --base-image ubuntu:22.04 \
+    --base-image ubuntu:20.04 \
     --yes \
     --install \
         build-essential ca-certificates cmake git curl wget unzip \

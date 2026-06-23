@@ -20,7 +20,9 @@ Edit the script, re-run it, and commit the regenerated recipes.
 | R          | system `r-base` + AFNI's R packages |
 | Python     | Miniconda env `neuro` (3.11): nipype, nilearn, pybids, pingouin, scipy stack, jupyterlab |
 
-Base image: `ubuntu:22.04`.
+Base image: `ubuntu:20.04` (Neurodocker's AFNI template depends on
+`multiarch-support`, which Ubuntu dropped after 20.04; the neuroimaging tool
+binaries all run fine on this base).
 
 ## Regenerating the recipes
 
