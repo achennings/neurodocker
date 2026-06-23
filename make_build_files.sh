@@ -26,6 +26,15 @@ set -euo pipefail
 
 NEURODOCKER="${NEURODOCKER:-neurodocker}"
 
+# Register the vendored templates (see templates/afni.yaml). Our AFNI template
+# is a copy of Neurodocker's stock one with `multiarch-support` and two legacy
+# .deb URLs removed -- those exist only on pre-22.04 distros and break the build
+# on ubuntu:22.04. AFNI itself (download URL, version, install steps) is
+# unchanged. Building on 22.04 lets Apptainer's fakeroot helper load (its glibc
+# requirement is satisfied), so `apptainer build --fakeroot` works on HPC nodes
+# without a subuid/subgid range.
+export REPROENV_TEMPLATE_PATH="$(cd "$(dirname "$0")" && pwd)/templates"
+
 # Shared spec used for both Docker and Singularity. The only difference between
 # the two outputs is the `generate <docker|singularity>` subcommand.
 generate_spec() {
@@ -33,7 +42,7 @@ generate_spec() {
 
   "$NEURODOCKER" generate "$target" \
     --pkg-manager apt \
-    --base-image ubuntu:20.04 \
+    --base-image ubuntu:22.04 \
     --yes \
     --install \
         build-essential ca-certificates cmake git curl wget unzip \

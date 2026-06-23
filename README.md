@@ -20,9 +20,24 @@ Edit the script, re-run it, and commit the regenerated recipes.
 | R          | system `r-base` + AFNI's R packages |
 | Python     | Miniconda env `neuro` (3.11): nipype, nilearn, pybids, pingouin, scipy stack, jupyterlab |
 
-Base image: `ubuntu:20.04` (Neurodocker's AFNI template depends on
-`multiarch-support`, which Ubuntu dropped after 20.04; the neuroimaging tool
-binaries all run fine on this base).
+Base image: `ubuntu:22.04`.
+
+### Vendored AFNI template
+
+Neurodocker's stock AFNI template lists `multiarch-support` plus two legacy
+`.deb` URLs (`libxp6`, `libpng12`) as dependencies. Those only exist on
+pre-22.04 distros and break the build on 22.04. `templates/afni.yaml` is a copy
+of the stock template with just those entries removed — **AFNI itself (download
+URL, version, install steps) is unchanged.** `make_build_files.sh` registers it
+via `REPROENV_TEMPLATE_PATH`, so it overrides the built-in AFNI template at
+generation time.
+
+Building on 22.04 (rather than an older base) means Apptainer's bundled
+`fakeroot` helper is glibc-compatible with the container, so a plain
+`apptainer build --fakeroot` works on HPC login/compute nodes even without a
+configured `/etc/subuid` range. The generated `%post` also disables the apt
+sandbox and sets `DEBIAN_FRONTEND=noninteractive` so the build runs unattended
+(e.g. as a submitted job) without prompting.
 
 ## Regenerating the recipes
 
