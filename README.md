@@ -32,15 +32,20 @@ URL, version, install steps) is unchanged.** `make_build_files.sh` registers it
 via `REPROENV_TEMPLATE_PATH`, so it overrides the built-in AFNI template at
 generation time.
 
-AFNI needs the legacy `libxp6` library (`libXp.so.6`), which is required by
-AFNI's `R_io.so` — so `rPkgsInstall` fails without it. It's no longer in the
-distro repos and its `.deb` **PreDepends on `multiarch-support`** (a transitional
-metapackage absent on 22.04), so it can't go through `apt-get install`.
-`make_build_files.sh` fetches it from `snapshot.debian.org` (a permanent Debian
-archive) and force-installs it with `dpkg -i --force-depends` in a `--run-bash`
-step. That step runs **before** `--afni` so the library is present when
-`rPkgsInstall` runs; `libxp6`'s own X dependencies (`libx11-6`, `libxext6`, …)
-are pulled in immediately after by AFNI's `libxm4` dependency.
+AFNI needs the legacy `libXp.so.6` library, which is required by AFNI's
+`R_io.so` — so `rPkgsInstall` fails without it. It's no longer in the distro
+repos, and *installing* the old `libxp6` `.deb` as a package poisons apt: the deb
+PreDepends on `multiarch-support` (a transitional metapackage that can't be
+installed on 22.04), which leaves apt in a permanently-broken state that blocks
+all subsequent `apt-get install`s — including AFNI's own dependencies.
+
+So instead of installing the package, `make_build_files.sh` just **extracts the
+shared object** from the `.deb` (`dpkg-deb -x`) and drops `libXp.so.6*` into
+`/usr/lib/x86_64-linux-gnu`, then runs `ldconfig`. dpkg/apt never learn about it,
+so apt stays clean. This `--run-bash` step runs **before** `--afni` so the
+library is present when `rPkgsInstall` runs; `libXp.so.6`'s own runtime deps
+(`libX11`, `libXext`, …) are installed moments later by AFNI's `libxm4`
+dependency.
 
 > Note: AFNI historically also linked `libpng12`, but that old `.deb` conflicts
 > with 22.04's merged-`/usr` (`usrmerge`) and is omitted. If a specific AFNI

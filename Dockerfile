@@ -52,7 +52,7 @@ RUN apt-get update -qq \
                   unzip \
                   wget \
            && rm -rf /var/lib/apt/lists/*
-RUN bash -c 'curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && dpkg -i --force-depends /tmp/libxp6.deb && rm -f /tmp/libxp6.deb && ldconfig'
+RUN bash -c 'curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && dpkg-deb -x /tmp/libxp6.deb /tmp/libxp6 && cp -aP /tmp/libxp6/usr/lib/x86_64-linux-gnu/libXp.so.6* /usr/lib/x86_64-linux-gnu/ && rm -rf /tmp/libxp6 /tmp/libxp6.deb && ldconfig'
 ENV PATH="/opt/afni-latest:$PATH" \
     AFNI_PLUGINPATH="/opt/afni-latest"
 RUN apt-get update -qq \
@@ -342,7 +342,7 @@ RUN printf '{ \
     { \
       "name": "run", \
       "kwds": { \
-        "command": "bash -c '"'"'curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && dpkg -i --force-depends /tmp/libxp6.deb && rm -f /tmp/libxp6.deb && ldconfig'"'"'" \
+        "command": "bash -c '"'"'curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && dpkg-deb -x /tmp/libxp6.deb /tmp/libxp6 && cp -aP /tmp/libxp6/usr/lib/x86_64-linux-gnu/libXp.so.6* /usr/lib/x86_64-linux-gnu/ && rm -rf /tmp/libxp6 /tmp/libxp6.deb && ldconfig'"'"'" \
       } \
     }, \
     { \

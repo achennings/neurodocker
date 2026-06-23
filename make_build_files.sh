@@ -51,7 +51,7 @@ generate_spec() {
         libgdal-dev libnode-dev \
         libfontconfig1-dev libfreetype6-dev libpng-dev libtiff5-dev \
         libjpeg-dev libharfbuzz-dev libfribidi-dev \
-    --run-bash "curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && dpkg -i --force-depends /tmp/libxp6.deb && rm -f /tmp/libxp6.deb && ldconfig" \
+    --run-bash "curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && dpkg-deb -x /tmp/libxp6.deb /tmp/libxp6 && cp -aP /tmp/libxp6/usr/lib/x86_64-linux-gnu/libXp.so.6* /usr/lib/x86_64-linux-gnu/ && rm -rf /tmp/libxp6 /tmp/libxp6.deb && ldconfig" \
     --afni method=binaries version=latest install_r_pkgs=true install_python3=true \
     --fsl version=6.0.7.22 \
     --freesurfer version=7.4.1 \
