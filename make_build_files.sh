@@ -1,55 +1,62 @@
-#!/bin/bash
-generate_docker() {
-  sudo docker run repronim/neurodocker:master generate docker \
-    --base=neurodebian:buster --pkg-manager=apt \
-    --install apt_opts="--quiet" vim libopenmpi-dev libcurl4-openssl-dev libxml2-dev libssl-dev libudunits2-dev libv8-dev \
-    --afni version=latest method=binaries \
-    --copy rhash.asc /home/docs/rhash.asc \
-    --run-bash "apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
-    --run-bash "rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/'" \
-    --run-bash "apt -y upgrade" \
-    --fsl version=6.0.4 method=binaries \
-    --run-bash "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4" \
-    --ants version=2.3.1 method=binaries \
-    --dcm2niix version=2bf2e482aec8e9959c6bd8e833cdccba3607c617 method=source \
+#!/usr/bin/env bash
+#
+# Generate the Dockerfile and Singularity/Apptainer recipe for the lab
+# neuroimaging container.
+#
+# This is the single source of truth: edit the spec in `generate_spec` below,
+# then re-run this script to regenerate both `Dockerfile` and `Singularity`.
+#
+# Requirements: neurodocker >= 2.x  (pip install neurodocker)
+#   docs: https://www.repronim.org/neurodocker/
+#
+# Pinned software versions (latest stable available in the neurodocker 2.1.x
+# registry as of this writing):
+#   AFNI        latest (binaries) + R packages + python3/matplotlib
+#   FSL         6.0.7.22
+#   FreeSurfer  7.4.1
+#   ANTs        2.6.2
+#   dcm2niix    v1.0.20250506
+#   Convert3D   1.0.0
+#
+# R is installed via AFNI's `install_r_pkgs=true`, which pulls r-base/r-base-dev
+# from the Ubuntu repos and then runs AFNI's `rPkgsInstall -pkgs ALL`. This
+# replaces the old (now-defunct) MRAN + apt-key approach.
+
+set -euo pipefail
+
+NEURODOCKER="${NEURODOCKER:-neurodocker}"
+
+# Shared spec used for both Docker and Singularity. The only difference between
+# the two outputs is the `generate <docker|singularity>` subcommand.
+generate_spec() {
+  local target="$1"   # "docker" or "singularity"
+
+  "$NEURODOCKER" generate "$target" \
+    --pkg-manager apt \
+    --base-image ubuntu:22.04 \
+    --yes \
+    --install \
+        build-essential ca-certificates cmake git curl wget unzip \
+        libopenblas-dev libgsl-dev libnlopt-dev \
+        libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev \
+        libgdal-dev libnode-dev \
+        libfontconfig1-dev libfreetype6-dev libpng-dev libtiff5-dev \
+        libjpeg-dev libharfbuzz-dev libfribidi-dev \
+    --afni method=binaries version=latest install_r_pkgs=true install_python3=true \
+    --fsl version=6.0.7.22 \
+    --freesurfer version=7.4.1 \
+    --ants version=2.6.2 \
+    --dcm2niix version=v1.0.20250506 method=binaries \
     --convert3d version=1.0.0 method=binaries \
-    --freesurfer version=7.1.1 method=binaries \
-    --copy license.txt /home/docs/license.txt \
-    --env FS_LICENSE=/home/docs/license.txt \
-    --run-bash "fs_install_mcr R2014b" \
-    --install libncurses5 \
-    --install libgsl-dev \
     --miniconda \
-          use_env=base \
-          conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
-          pip_install='nipype pingouin brainiak ipython' \
-    --user neuro
+        version=latest \
+        env_name=neuro \
+        conda_install="python=3.11 matplotlib numpy pandas scikit-learn scipy seaborn nilearn traits jupyterlab" \
+        pip_install="nipype pingouin pybids" \
+    --env FS_LICENSE=/opt/freesurfer.license
 }
-generate_singularity () {
-  sudo docker run repronim/neurodocker:master generate singularity \
-    --base=ubuntu:20.04 --pkg-manager=apt \
-    --install apt_opts="--quiet" vim libopenmpi-dev libcurl4-openssl-dev libxml2-dev libssl-dev libudunits2-dev libv8-dev cmake \
-    --afni version=latest method=binaries \
-    --copy rhash.asc /home/docs/rhash.asc \
-    --run-bash "apt-key add /home/docs/rhash.asc && echo deb http://cloud.r-project.org/bin/linux/debian buster-cran40/ >> /etc/apt/sources.list && apt update && apt install -y -t buster-cran40 r-base r-base-dev" \
-    --run-bash "rPkgsInstall -pkgs ALL -site 'https://cran.microsoft.com/'" \
-    --run-bash "apt -y upgrade" \
-    --fsl version=6.0.4 method=binaries \
-    --run-bash "bash /opt/fsl-6.0.4/etc/fslconf/fslpython_install.sh -f /opt/fsl-6.0.4" \
-    --ants version=2.3.1 method=binaries \
-    --dcm2niix version=2bf2e482aec8e9959c6bd8e833cdccba3607c617 method=source \
-    --convert3d version=1.0.0 method=binaries \
-    --freesurfer version=7.1.1 method=binaries \
-    --copy license.txt /home/docs/license.txt \
-    --env FS_LICENSE=/home/docs/license.txt \
-    --run-bash "fs_install_mcr R2014b" \
-    --install libncurses5 \
-    --install libgsl-dev \
-    --miniconda \
-          use_env=base \
-          conda_install='python=3.8 matplotlib numpy pandas scikit-learn nilearn scipy seaborn traits' \
-          pip_install='nipype pingouin brainiak ipython' \
-    --user neuro
-}
-generate_docker > Dockerfile
-generate_singularity > Singularity
+
+generate_spec docker      > Dockerfile
+generate_spec singularity > Singularity
+
+echo "Wrote Dockerfile and Singularity."
