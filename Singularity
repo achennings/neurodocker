@@ -3,6 +3,9 @@
 Bootstrap: docker
 From: ubuntu:22.04
 
+%files
+license.txt /opt/freesurfer.license
+
 %environment
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
@@ -459,6 +462,15 @@ printf '{ \
       "name": "run", \
       "kwds": { \
         "command": "apt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    ca-certificates \\\\\\n    curl\\nrm -rf /var/lib/apt/lists/*\\necho \\"Downloading Convert3D ...\\"\\nmkdir -p /opt/convert3d-1.0.0\\ncurl -fsSL https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \\\\\\n| tar -xz -C /opt/convert3d-1.0.0 --strip-components 1" \
+      } \
+    }, \
+    { \
+      "name": "copy", \
+      "kwds": { \
+        "source": [ \
+          "license.txt" \
+        ], \
+        "destination": "/opt/freesurfer.license" \
       } \
     }, \
     { \

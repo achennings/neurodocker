@@ -48,6 +48,7 @@ generate_spec() {
     --ants version=2.6.2 \
     --dcm2niix version=v1.0.20250506 method=binaries \
     --convert3d version=1.0.0 method=binaries \
+    --copy license.txt /opt/freesurfer.license \
     --miniconda \
         version=latest \
         env_name=neuro \

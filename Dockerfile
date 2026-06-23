@@ -233,6 +233,8 @@ RUN apt-get update -qq \
     && mkdir -p /opt/convert3d-1.0.0 \
     && curl -fsSL https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \
     | tar -xz -C /opt/convert3d-1.0.0 --strip-components 1
+COPY ["license.txt", \
+      "/opt/freesurfer.license"]
 ENV CONDA_DIR="/opt/miniconda-latest" \
     PATH="/opt/miniconda-latest/bin:$PATH"
 RUN apt-get update -qq \
@@ -446,6 +448,16 @@ RUN printf '{ \
       "name": "run", \
       "kwds": { \
         "command": "apt-get update -qq\\napt-get install -y -q --no-install-recommends \\\\\\n    ca-certificates \\\\\\n    curl\\nrm -rf /var/lib/apt/lists/*\\necho \\"Downloading Convert3D ...\\"\\nmkdir -p /opt/convert3d-1.0.0\\ncurl -fsSL https://sourceforge.net/projects/c3d/files/c3d/1.0.0/c3d-1.0.0-Linux-x86_64.tar.gz/download \\\\\\n| tar -xz -C /opt/convert3d-1.0.0 --strip-components 1" \
+      } \
+    }, \
+    { \
+      "name": "copy", \
+      "kwds": { \
+        "source": [ \
+          "license.txt", \
+          "/opt/freesurfer.license" \
+        ], \
+        "destination": "/opt/freesurfer.license" \
       } \
     }, \
     { \

@@ -56,16 +56,11 @@ Notes:
   apptainer build neuro.sif docker-archive://neuro.tar
   ```
 
-## FreeSurfer license (do NOT bake it into the image)
+## FreeSurfer license
 
-The image sets `FS_LICENSE=/opt/freesurfer.license` but does **not** contain a
-license file. Bind-mount your `license.txt` at runtime:
-
-```bash
-apptainer exec -B /path/to/license.txt:/opt/freesurfer.license neuro.sif recon-all -version
-```
-
-`license.txt` is git-ignored. Keep it out of version control.
+`license.txt` is baked into the image at `/opt/freesurfer.license`, and
+`FS_LICENSE` points to it — FreeSurfer works out of the box, no runtime mount
+needed. To rotate it, replace `license.txt` and regenerate the recipes.
 
 ## Running tools
 

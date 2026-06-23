@@ -1,6 +1,2 @@
 *.sublime*
 *.swp
-
-# FreeSurfer license — never commit credentials. Mount at runtime instead.
-license.txt
-*.license
