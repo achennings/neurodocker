@@ -24,13 +24,17 @@ Base image: `ubuntu:22.04`.
 
 ### Vendored AFNI template
 
-Neurodocker's stock AFNI template lists `multiarch-support` plus two legacy
-`.deb` URLs (`libxp6`, `libpng12`) as dependencies. Those only exist on
-pre-22.04 distros and break the build on 22.04. `templates/afni.yaml` is a copy
-of the stock template with just those entries removed — **AFNI itself (download
+Neurodocker's stock AFNI template lists `multiarch-support` as an apt
+dependency, but that transitional package does not exist on Ubuntu after 20.04,
+so the build fails on 22.04. `templates/afni.yaml` is a copy of the stock
+template with **only** `multiarch-support` removed — **AFNI itself (download
 URL, version, install steps) is unchanged.** `make_build_files.sh` registers it
 via `REPROENV_TEMPLATE_PATH`, so it overrides the built-in AFNI template at
 generation time.
+
+The template still pulls the legacy `libxp6` and `libpng12` `.deb`s (installed
+directly, which works fine on 22.04): AFNI's `R_io.so` is linked against
+`libXp.so.6`, so `rPkgsInstall` fails without `libxp6`.
 
 Building on 22.04 (rather than an older base) means Apptainer's bundled
 `fakeroot` helper is glibc-compatible with the container, so a plain
