@@ -17,41 +17,43 @@ Edit the script, re-run it, and commit the regenerated recipes.
 | ANTs       | 2.6.2                    |
 | dcm2niix   | v1.0.20250506            |
 | Convert3D  | 1.0.0                    |
-| R          | Fedora `R` + AFNI's R packages (`rPkgsInstall`) |
+| R          | Ubuntu `r-base` (4.3) + AFNI's R packages (`rPkgsInstall`) |
 | Python     | Miniconda env `neuro` (3.11): nipype, nilearn, pybids, pingouin, scipy stack, jupyterlab |
 
-Base image: `fedora:40` (yum/dnf).
+Base image: `ubuntu:24.04` (apt).
 
-### Why Fedora, not Ubuntu/Debian
+### How AFNI is installed (and why not the `--afni` template)
 
-Neurodocker's AFNI binaries template is only maintained for the **yum** path on
-modern distros. On Debian/Ubuntu it depends on `multiarch-support` plus legacy
-`libxp6`/`libpng12` `.deb`s that no longer install on current releases — see
+We deliberately do **not** use Neurodocker's `--afni` template. That template
+downloads AFNI's *generic* binary (`linux_openmp_64.tgz`), an old build that
+links `libXp`/`libpng12` and depends on `multiarch-support` — none of which
+install on modern Ubuntu. Forcing them leads to a long chain of failures
+(missing `multiarch-support`, dead `.deb` URLs, broken apt state, `usrmerge`
+conflicts); this is a known issue,
 [ReproNim/neurodocker#419](https://github.com/ReproNim/neurodocker/issues/419).
-Trying to force them through leads to a chain of failures (missing
-`multiarch-support`, dead deb URLs, broken apt state, `usrmerge` conflicts).
 
-Fedora ships `R`, `libXp`, and `libpng12` as ordinary packages, so AFNI with
-`install_r_pkgs=true` builds with **no workarounds**. This is the approach the
-[Neurodocker docs](https://repronim.org/neurodocker/user_guide/examples.html)
-use for every AFNI example (`--pkg-manager yum --base-image fedora:40`). The
-neuroimaging tools themselves are identical regardless of base distro, and the
-final `.sif` runs the same on HPC.
+Instead we follow the maintained approach used by AFNI and by
+[NeuroDesk's production recipe](https://github.com/NeuroDesk/neurocontainers/blob/main/recipes/afni/build.yaml):
+install AFNI's **Ubuntu-specific** binary, `linux_ubuntu_24_64.tgz`, which is
+built against current Ubuntu 24.04 libraries and has **no legacy dependencies**.
+The relevant `make_build_files.sh` steps:
 
-Fedora 40's glibc is also newer than the HPC host's, so Apptainer's bundled
-`fakeroot` helper loads, and a plain `apptainer build --fakeroot` works even on
-nodes without a configured `/etc/subuid` range. `dnf` builds non-interactively,
-so the recipe runs unattended (e.g. as a submitted job).
+1. `apt install` AFNI's runtime/R deps (`r-base`, `tcsh`, `libxm4`, mesa/X libs,
+   `libgsl-dev`, …).
+2. `curl` the Ubuntu-specific AFNI tarball into `/usr/local/abin`.
+3. `curl` AFNI's prebuilt R-package libs (`linux_ubuntu_24_R-4.3_libs.tgz`) into
+   `/usr/local/share/R-4.3` and set `R_LIBS` there.
+4. `rPkgsInstall -pkgs ALL` (with `/usr/local/abin` exported onto `PATH` —
+   Singularity's `%post` does not load the `%environment` block, so the export
+   is explicit).
 
-### Vendored AFNI template
+FSL, FreeSurfer, ANTs, dcm2niix, Convert3D, and Miniconda *do* use stock
+Neurodocker templates — those work fine on apt.
 
-`templates/afni.yaml` is identical to Neurodocker's stock template except for
-**one added line per install method**: it puts `/opt/afni-*` on `PATH` right
-before the `rPkgsInstall` call. Neurodocker only adds AFNI to `PATH` via the
-template's env block, which becomes Singularity's `%environment` — and that is
-not active during `%post`, so the bare `rPkgsInstall` would fail with
-"not found". This is a Singularity-specific gap, independent of the base distro.
-`make_build_files.sh` registers the template via `REPROENV_TEMPLATE_PATH`.
+Ubuntu 24.04 ships `getopt` and a current glibc, so Apptainer's bundled
+`fakeroot` helper loads and a plain `apptainer build --fakeroot` works on your
+HPC node (unlike a Fedora base, whose image lacks `getopt` —
+[apptainer#1863](https://github.com/apptainer/apptainer/issues/1863)).
 
 ## Regenerating the recipes
 
@@ -66,7 +68,7 @@ pip install neurodocker
 
 Most clusters now run [Apptainer](https://apptainer.org) (the renamed
 open-source Singularity). The generated `Singularity` recipe bootstraps from the
-Fedora Docker base and installs everything in `%post`.
+Ubuntu Docker base and installs everything in `%post`.
 
 ```bash
 # On the cluster, in this repo directory:

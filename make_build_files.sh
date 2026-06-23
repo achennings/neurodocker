@@ -9,38 +9,27 @@
 # Requirements: neurodocker >= 2.x  (pip install neurodocker)
 #   docs: https://www.repronim.org/neurodocker/
 #
-# Base image: fedora:40 (yum/dnf).
-#   Neurodocker's AFNI binaries template is only maintained for the yum path on
-#   modern distros -- on Debian/Ubuntu it depends on `multiarch-support` and
-#   legacy libxp6/libpng12 .debs that no longer install (see ReproNim/neurodocker
-#   #419). Fedora ships R, libXp, and libpng12 as normal packages, so AFNI +
-#   install_r_pkgs builds cleanly with no workarounds. This matches the AFNI
-#   examples in the Neurodocker docs, which all use `--pkg-manager yum
-#   --base-image fedora:40`.
+# AFNI install strategy (important):
+#   We do NOT use neurodocker's `--afni` template. That template downloads AFNI's
+#   *generic* binary (linux_openmp_64.tgz), which links libXp/libpng12 and needs
+#   `multiarch-support` -- none of which install on modern Ubuntu (see
+#   ReproNim/neurodocker#419). Instead we mirror the maintained NeuroDesk / AFNI
+#   approach: install AFNI's *Ubuntu-specific* binary (linux_ubuntu_24_64.tgz),
+#   which is built against current Ubuntu libraries and has no legacy deps.
+#   ref: https://github.com/NeuroDesk/neurocontainers/blob/main/recipes/afni/build.yaml
 #
-# Pinned software versions (latest stable in the neurodocker 2.1.x registry):
-#   AFNI        latest (binaries) + R packages + python3/matplotlib
-#   FSL         6.0.7.22
-#   FreeSurfer  7.4.1
-#   ANTs        2.6.2
-#   dcm2niix    v1.0.20250506
-#   Convert3D   1.0.0
+#   R: Ubuntu's r-base + AFNI's prebuilt R-package libs tarball + rPkgsInstall.
 #
-# R: installed via AFNI's `install_r_pkgs=true`, which installs R (R-devel on
-# yum) and runs AFNI's `rPkgsInstall -pkgs ALL`.
+# Other tools use stock neurodocker templates (they work fine on apt):
+#   FSL 6.0.7.22, FreeSurfer 7.4.1, ANTs 2.6.2, dcm2niix v1.0.20250506,
+#   Convert3D 1.0.0, plus a Miniconda `neuro` env.
 
 set -euo pipefail
 
 NEURODOCKER="${NEURODOCKER:-neurodocker}"
 
-# Register the vendored AFNI template (templates/afni.yaml). It is identical to
-# Neurodocker's stock template except for one added line per method: it exports
-# /opt/afni-* onto PATH right before the `rPkgsInstall` call. Neurodocker only
-# puts AFNI on PATH via the template's env block, which becomes Singularity's
-# %environment -- and %environment is NOT active during %post. Without the
-# export, the Singularity build fails with "rPkgsInstall: not found". (This is a
-# Singularity-specific gap, independent of the base distro.)
-export REPROENV_TEMPLATE_PATH="$(cd "$(dirname "$0")" && pwd)/templates"
+AFNI_BIN_URL="https://afni.nimh.nih.gov/pub/dist/tgz/linux_ubuntu_24_64.tgz"
+AFNI_RLIBS_URL="https://afni.nimh.nih.gov/pub/dist/tgz/package_libs/linux_ubuntu_24_R-4.3_libs.tgz"
 
 # Shared spec used for both Docker and Singularity. The only difference between
 # the two outputs is the `generate <docker|singularity>` subcommand.
@@ -48,13 +37,25 @@ generate_spec() {
   local target="$1"   # "docker" or "singularity"
 
   "$NEURODOCKER" generate "$target" \
-    --pkg-manager yum \
-    --base-image fedora:40 \
+    --pkg-manager apt \
+    --base-image ubuntu:24.04 \
     --yes \
+    --install software-properties-common \
+    --run-bash "add-apt-repository universe -y" \
     --install \
-        gcc gcc-c++ gcc-gfortran make cmake git wget which unzip \
-        openblas-devel gsl-devel libxml2-devel \
-    --afni method=binaries version=latest install_r_pkgs=true install_python3=true \
+        r-base r-base-dev tcsh \
+        build-essential cmake git curl bc \
+        python-is-python3 python3-matplotlib python3-numpy \
+        gsl-bin netpbm libjpeg62 xvfb xfonts-base \
+        libgdal-dev libopenblas-dev libnode-dev libudunits2-dev \
+        libssl-dev libcurl4-openssl-dev libxml2-dev libgsl-dev \
+        libglu1-mesa-dev libglw1-mesa-dev libxm4 libgfortran-14-dev libgomp1 \
+        libxext-dev libxmu-dev libxpm-dev libglut-dev libxi-dev libglib2.0-dev \
+    --workdir /opt \
+    --run-bash "curl -fsSL -O $AFNI_BIN_URL && tar -xf linux_ubuntu_24_64.tgz && mv linux_ubuntu_24_64 /usr/local/abin && rm -f linux_ubuntu_24_64.tgz" \
+    --run-bash "curl -fsSL -O $AFNI_RLIBS_URL && tar -xf linux_ubuntu_24_R-4.3_libs.tgz && mv linux_ubuntu_24_R-4.3_libs /usr/local/share/R-4.3 && rm -f linux_ubuntu_24_R-4.3_libs.tgz" \
+    --env PATH='/usr/local/abin:$PATH' R_LIBS=/usr/local/share/R-4.3 \
+    --run-bash "export PATH=/usr/local/abin:\$PATH && export R_LIBS=/usr/local/share/R-4.3 && rPkgsInstall -pkgs ALL" \
     --fsl version=6.0.7.22 \
     --freesurfer version=7.4.1 \
     --ants version=2.6.2 \
@@ -71,5 +72,25 @@ generate_spec() {
 
 generate_spec docker      > Dockerfile
 generate_spec singularity > Singularity
+
+# --- Make the Singularity build non-interactive (batch/job-safe) ---
+# Neurodocker sets DEBIAN_FRONTEND as a Dockerfile ARG, but a Singularity %post
+# does not inherit it, so apt packages like tzdata launch interactive debconf
+# prompts that hang an unattended build. Inject the export (+ a default TZ) at
+# the very top of %post, before Neurodocker's first apt-get.
+python3 - "$PWD/Singularity" <<'PY'
+import sys
+path = sys.argv[1]
+inject = "export DEBIAN_FRONTEND=noninteractive\nexport TZ=Etc/UTC\n"
+lines = open(path).readlines()
+out, done = [], False
+for line in lines:
+    out.append(line)
+    if line.strip() == "%post" and not done:
+        out.append(inject)
+        done = True
+open(path, "w").writelines(out)
+print("Set DEBIAN_FRONTEND=noninteractive in Singularity %post" if done else "WARNING: %post not found")
+PY
 
 echo "Wrote Dockerfile and Singularity."
