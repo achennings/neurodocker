@@ -52,6 +52,7 @@ generate_spec() {
         libfontconfig1-dev libfreetype6-dev libpng-dev libtiff5-dev \
         libjpeg-dev libharfbuzz-dev libfribidi-dev \
     --afni method=binaries version=latest install_r_pkgs=true install_python3=true \
+    --run-bash "curl -fsSL --retry 5 -o /tmp/libpng12.deb http://snapshot.debian.org/archive/debian-security/20160113T213056Z/pool/updates/main/libp/libpng/libpng12-0_1.2.49-1%2Bdeb7u2_amd64.deb && dpkg -i --force-depends /tmp/libpng12.deb && rm /tmp/libpng12.deb && ldconfig" \
     --fsl version=6.0.7.22 \
     --freesurfer version=7.4.1 \
     --ants version=2.6.2 \

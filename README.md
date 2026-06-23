@@ -32,9 +32,17 @@ URL, version, install steps) is unchanged.** `make_build_files.sh` registers it
 via `REPROENV_TEMPLATE_PATH`, so it overrides the built-in AFNI template at
 generation time.
 
-The template still pulls the legacy `libxp6` and `libpng12` `.deb`s (installed
-directly, which works fine on 22.04): AFNI's `R_io.so` is linked against
-`libXp.so.6`, so `rPkgsInstall` fails without `libxp6`.
+AFNI also needs two legacy libraries that are no longer in the distro repos:
+
+- **`libxp6`** — AFNI's `R_io.so` is linked against `libXp.so.6`, so
+  `rPkgsInstall` fails without it. The template installs it from
+  `snapshot.debian.org` (a permanent Debian archive). It has no awkward
+  dependencies and installs cleanly with `apt-get install`.
+- **`libpng12`** — used by various AFNI image programs. Its `.deb` PreDepends on
+  `multiarch-support` (a transitional metapackage absent on 22.04), so it can't
+  go through `apt-get install`. `make_build_files.sh` instead force-installs it
+  with `dpkg -i --force-depends` (a `--run-bash` step) — the library works fine
+  without the metapackage.
 
 Building on 22.04 (rather than an older base) means Apptainer's bundled
 `fakeroot` helper is glibc-compatible with the container, so a plain
