@@ -17,48 +17,41 @@ Edit the script, re-run it, and commit the regenerated recipes.
 | ANTs       | 2.6.2                    |
 | dcm2niix   | v1.0.20250506            |
 | Convert3D  | 1.0.0                    |
-| R          | system `r-base` + AFNI's R packages |
+| R          | Fedora `R` + AFNI's R packages (`rPkgsInstall`) |
 | Python     | Miniconda env `neuro` (3.11): nipype, nilearn, pybids, pingouin, scipy stack, jupyterlab |
 
-Base image: `ubuntu:22.04`.
+Base image: `fedora:40` (yum/dnf).
+
+### Why Fedora, not Ubuntu/Debian
+
+Neurodocker's AFNI binaries template is only maintained for the **yum** path on
+modern distros. On Debian/Ubuntu it depends on `multiarch-support` plus legacy
+`libxp6`/`libpng12` `.deb`s that no longer install on current releases — see
+[ReproNim/neurodocker#419](https://github.com/ReproNim/neurodocker/issues/419).
+Trying to force them through leads to a chain of failures (missing
+`multiarch-support`, dead deb URLs, broken apt state, `usrmerge` conflicts).
+
+Fedora ships `R`, `libXp`, and `libpng12` as ordinary packages, so AFNI with
+`install_r_pkgs=true` builds with **no workarounds**. This is the approach the
+[Neurodocker docs](https://repronim.org/neurodocker/user_guide/examples.html)
+use for every AFNI example (`--pkg-manager yum --base-image fedora:40`). The
+neuroimaging tools themselves are identical regardless of base distro, and the
+final `.sif` runs the same on HPC.
+
+Fedora 40's glibc is also newer than the HPC host's, so Apptainer's bundled
+`fakeroot` helper loads, and a plain `apptainer build --fakeroot` works even on
+nodes without a configured `/etc/subuid` range. `dnf` builds non-interactively,
+so the recipe runs unattended (e.g. as a submitted job).
 
 ### Vendored AFNI template
 
-Neurodocker's stock AFNI template lists `multiarch-support` as an apt
-dependency, but that transitional package does not exist on Ubuntu after 20.04,
-so the build fails on 22.04. `templates/afni.yaml` is a copy of the stock
-template with **only** `multiarch-support` removed — **AFNI itself (download
-URL, version, install steps) is unchanged.** `make_build_files.sh` registers it
-via `REPROENV_TEMPLATE_PATH`, so it overrides the built-in AFNI template at
-generation time.
-
-AFNI needs the legacy `libXp.so.6` library, which is required by AFNI's
-`R_io.so` — so `rPkgsInstall` fails without it. It's no longer in the distro
-repos, and *installing* the old `libxp6` `.deb` as a package poisons apt: the deb
-PreDepends on `multiarch-support` (a transitional metapackage that can't be
-installed on 22.04), which leaves apt in a permanently-broken state that blocks
-all subsequent `apt-get install`s — including AFNI's own dependencies.
-
-So instead of installing the package, `make_build_files.sh` just **extracts the
-shared object** from the `.deb` (`dpkg-deb -x`) and drops `libXp.so.6*` into
-`/usr/lib/x86_64-linux-gnu`, then runs `ldconfig`. dpkg/apt never learn about it,
-so apt stays clean. This `--run-bash` step runs **before** `--afni` so the
-library is present when `rPkgsInstall` runs; `libXp.so.6`'s own runtime deps
-(`libX11`, `libXext`, …) are installed moments later by AFNI's `libxm4`
-dependency.
-
-> Note: AFNI historically also linked `libpng12`, but that old `.deb` conflicts
-> with 22.04's merged-`/usr` (`usrmerge`) and is omitted. If a specific AFNI
-> program ever errors with `libpng12.so.0: cannot open shared object file`,
-> install a usrmerge-compatible build (e.g. the `ppa:linuxuprising/libpng12`
-> PPA) rather than the old Debian `.deb`.
-
-Building on 22.04 (rather than an older base) means Apptainer's bundled
-`fakeroot` helper is glibc-compatible with the container, so a plain
-`apptainer build --fakeroot` works on HPC login/compute nodes even without a
-configured `/etc/subuid` range. The generated `%post` also disables the apt
-sandbox and sets `DEBIAN_FRONTEND=noninteractive` so the build runs unattended
-(e.g. as a submitted job) without prompting.
+`templates/afni.yaml` is identical to Neurodocker's stock template except for
+**one added line per install method**: it puts `/opt/afni-*` on `PATH` right
+before the `rPkgsInstall` call. Neurodocker only adds AFNI to `PATH` via the
+template's env block, which becomes Singularity's `%environment` — and that is
+not active during `%post`, so the bare `rPkgsInstall` would fail with
+"not found". This is a Singularity-specific gap, independent of the base distro.
+`make_build_files.sh` registers the template via `REPROENV_TEMPLATE_PATH`.
 
 ## Regenerating the recipes
 
@@ -73,7 +66,7 @@ pip install neurodocker
 
 Most clusters now run [Apptainer](https://apptainer.org) (the renamed
 open-source Singularity). The generated `Singularity` recipe bootstraps from the
-Ubuntu Docker base and installs everything in `%post`.
+Fedora Docker base and installs everything in `%post`.
 
 ```bash
 # On the cluster, in this repo directory:

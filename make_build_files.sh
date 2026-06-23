@@ -9,8 +9,16 @@
 # Requirements: neurodocker >= 2.x  (pip install neurodocker)
 #   docs: https://www.repronim.org/neurodocker/
 #
-# Pinned software versions (latest stable available in the neurodocker 2.1.x
-# registry as of this writing):
+# Base image: fedora:40 (yum/dnf).
+#   Neurodocker's AFNI binaries template is only maintained for the yum path on
+#   modern distros -- on Debian/Ubuntu it depends on `multiarch-support` and
+#   legacy libxp6/libpng12 .debs that no longer install (see ReproNim/neurodocker
+#   #419). Fedora ships R, libXp, and libpng12 as normal packages, so AFNI +
+#   install_r_pkgs builds cleanly with no workarounds. This matches the AFNI
+#   examples in the Neurodocker docs, which all use `--pkg-manager yum
+#   --base-image fedora:40`.
+#
+# Pinned software versions (latest stable in the neurodocker 2.1.x registry):
 #   AFNI        latest (binaries) + R packages + python3/matplotlib
 #   FSL         6.0.7.22
 #   FreeSurfer  7.4.1
@@ -18,21 +26,20 @@
 #   dcm2niix    v1.0.20250506
 #   Convert3D   1.0.0
 #
-# R is installed via AFNI's `install_r_pkgs=true`, which pulls r-base/r-base-dev
-# from the Ubuntu repos and then runs AFNI's `rPkgsInstall -pkgs ALL`. This
-# replaces the old (now-defunct) MRAN + apt-key approach.
+# R: installed via AFNI's `install_r_pkgs=true`, which installs R (R-devel on
+# yum) and runs AFNI's `rPkgsInstall -pkgs ALL`.
 
 set -euo pipefail
 
 NEURODOCKER="${NEURODOCKER:-neurodocker}"
 
-# Register the vendored templates (see templates/afni.yaml). Our AFNI template
-# is a copy of Neurodocker's stock one with `multiarch-support` and two legacy
-# .deb URLs removed -- those exist only on pre-22.04 distros and break the build
-# on ubuntu:22.04. AFNI itself (download URL, version, install steps) is
-# unchanged. Building on 22.04 lets Apptainer's fakeroot helper load (its glibc
-# requirement is satisfied), so `apptainer build --fakeroot` works on HPC nodes
-# without a subuid/subgid range.
+# Register the vendored AFNI template (templates/afni.yaml). It is identical to
+# Neurodocker's stock template except for one added line per method: it exports
+# /opt/afni-* onto PATH right before the `rPkgsInstall` call. Neurodocker only
+# puts AFNI on PATH via the template's env block, which becomes Singularity's
+# %environment -- and %environment is NOT active during %post. Without the
+# export, the Singularity build fails with "rPkgsInstall: not found". (This is a
+# Singularity-specific gap, independent of the base distro.)
 export REPROENV_TEMPLATE_PATH="$(cd "$(dirname "$0")" && pwd)/templates"
 
 # Shared spec used for both Docker and Singularity. The only difference between
@@ -41,17 +48,12 @@ generate_spec() {
   local target="$1"   # "docker" or "singularity"
 
   "$NEURODOCKER" generate "$target" \
-    --pkg-manager apt \
-    --base-image ubuntu:22.04 \
+    --pkg-manager yum \
+    --base-image fedora:40 \
     --yes \
     --install \
-        build-essential ca-certificates cmake git curl wget unzip \
-        libopenblas-dev libgsl-dev libnlopt-dev \
-        libcurl4-openssl-dev libssl-dev libxml2-dev libudunits2-dev \
-        libgdal-dev libnode-dev \
-        libfontconfig1-dev libfreetype6-dev libpng-dev libtiff5-dev \
-        libjpeg-dev libharfbuzz-dev libfribidi-dev \
-    --run-bash "curl -fsSL --retry 5 -o /tmp/libxp6.deb http://snapshot.debian.org/archive/debian/20160601T000000Z/pool/main/libx/libxp/libxp6_1.0.2-2_amd64.deb && dpkg-deb -x /tmp/libxp6.deb /tmp/libxp6 && cp -aP /tmp/libxp6/usr/lib/x86_64-linux-gnu/libXp.so.6* /usr/lib/x86_64-linux-gnu/ && rm -rf /tmp/libxp6 /tmp/libxp6.deb && ldconfig" \
+        gcc gcc-c++ gcc-gfortran make cmake git wget which unzip \
+        openblas-devel gsl-devel libxml2-devel \
     --afni method=binaries version=latest install_r_pkgs=true install_python3=true \
     --fsl version=6.0.7.22 \
     --freesurfer version=7.4.1 \
@@ -69,44 +71,5 @@ generate_spec() {
 
 generate_spec docker      > Dockerfile
 generate_spec singularity > Singularity
-
-# --- Post-process the Singularity recipe for non-interactive, rootless builds ---
-#
-# Two things a Singularity %post does NOT inherit from the Docker build, both of
-# which break unattended/batch (job-submitted) builds:
-#
-# 1. apt sandbox. With `apptainer build --fakeroot` on an HPC node that has no
-#    /etc/subuid + /etc/subgid range, only a single UID is mapped into the build
-#    namespace, so apt cannot drop privileges to its sandbox user `_apt`:
-#        E: setegid/seteuid ... Invalid argument / Method http has died
-#    `APT::Sandbox::User "root"` makes apt run as the namespace root user.
-#
-# 2. DEBIAN_FRONTEND. Neurodocker sets this as an ARG in the Dockerfile, but
-#    %post does not get it, so packages like tzdata launch interactive debconf
-#    prompts (geographic area, etc.) that hang a non-interactive job forever.
-#    Exporting DEBIAN_FRONTEND=noninteractive (+ a default TZ) suppresses them.
-#
-# Both must be set before Neurodocker's first `apt-get update`, i.e. at the very
-# top of %post.
-python3 - "$PWD/Singularity" <<'PY'
-import sys
-path = sys.argv[1]
-inject = (
-    'export DEBIAN_FRONTEND=noninteractive\n'
-    'export TZ=Etc/UTC\n'
-    'echo \'APT::Sandbox::User "root";\' > /etc/apt/apt.conf.d/99-disable-sandbox\n'
-)
-with open(path) as f:
-    lines = f.readlines()
-out, done = [], False
-for line in lines:
-    out.append(line)
-    if line.strip() == "%post" and not done:
-        out.append(inject)
-        done = True
-with open(path, "w") as f:
-    f.writelines(out)
-print("Disabled apt sandbox in Singularity %post" if done else "WARNING: %post not found")
-PY
 
 echo "Wrote Dockerfile and Singularity."
