@@ -32,16 +32,21 @@ URL, version, install steps) is unchanged.** `make_build_files.sh` registers it
 via `REPROENV_TEMPLATE_PATH`, so it overrides the built-in AFNI template at
 generation time.
 
-AFNI also needs two legacy libraries (`libxp6`, `libpng12`) that are no longer
-in the distro repos — `libXp.so.6` is required by AFNI's `R_io.so` (so
-`rPkgsInstall` fails without it), and `libpng12` is used by various AFNI image
-programs. Both `.deb`s **PreDepend on `multiarch-support`**, a transitional
-metapackage that is absent (and uninstallable) on 22.04, so neither can go
-through `apt-get install`. `make_build_files.sh` fetches them from
-`snapshot.debian.org` (a permanent Debian archive) and force-installs them with
-`dpkg -i --force-depends` in a `--run-bash` step — the libraries work fine
-without the metapackage. This step runs **before** `--afni` so that `libxp6` is
-present when `rPkgsInstall` runs.
+AFNI needs the legacy `libxp6` library (`libXp.so.6`), which is required by
+AFNI's `R_io.so` — so `rPkgsInstall` fails without it. It's no longer in the
+distro repos and its `.deb` **PreDepends on `multiarch-support`** (a transitional
+metapackage absent on 22.04), so it can't go through `apt-get install`.
+`make_build_files.sh` fetches it from `snapshot.debian.org` (a permanent Debian
+archive) and force-installs it with `dpkg -i --force-depends` in a `--run-bash`
+step. That step runs **before** `--afni` so the library is present when
+`rPkgsInstall` runs; `libxp6`'s own X dependencies (`libx11-6`, `libxext6`, …)
+are pulled in immediately after by AFNI's `libxm4` dependency.
+
+> Note: AFNI historically also linked `libpng12`, but that old `.deb` conflicts
+> with 22.04's merged-`/usr` (`usrmerge`) and is omitted. If a specific AFNI
+> program ever errors with `libpng12.so.0: cannot open shared object file`,
+> install a usrmerge-compatible build (e.g. the `ppa:linuxuprising/libpng12`
+> PPA) rather than the old Debian `.deb`.
 
 Building on 22.04 (rather than an older base) means Apptainer's bundled
 `fakeroot` helper is glibc-compatible with the container, so a plain
