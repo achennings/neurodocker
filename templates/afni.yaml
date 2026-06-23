@@ -92,6 +92,7 @@ binaries:
           {% elif self.pkg_manager == "yum" %}
           {{ self.install(["R-devel"]) }}
           {% endif -%}
+        export PATH="{{ self.install_path }}:$PATH"
         rPkgsInstall -pkgs ALL
         {% endif -%}
 
@@ -188,5 +189,6 @@ source:
           {% elif self.pkg_manager == "yum" %}
           {{ self.install(["R-devel"]) }}
           {% endif -%}
+        export PATH="{{ self.install_path }}:$PATH"
         rPkgsInstall -pkgs ALL
         {% endif -%}
