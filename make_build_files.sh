@@ -60,21 +60,32 @@ generate_spec() {
 generate_spec docker      > Dockerfile
 generate_spec singularity > Singularity
 
-# --- Post-process the Singularity recipe for unprivileged (rootless) builds ---
+# --- Post-process the Singularity recipe for non-interactive, rootless builds ---
 #
-# When building with `apptainer build --fakeroot` on an HPC node that does NOT
-# have a /etc/subuid + /etc/subgid range configured for the user, only a single
-# UID is mapped into the build namespace. apt then fails when it tries to drop
-# privileges to its sandbox user `_apt` (uid 100):
-#     E: setegid/seteuid ... Invalid argument
-#     E: Method http has died unexpectedly!
-# Disabling the apt sandbox makes apt run as the (namespace) root user instead.
-# This must be set before Neurodocker's first `apt-get update`, i.e. at the very
+# Two things a Singularity %post does NOT inherit from the Docker build, both of
+# which break unattended/batch (job-submitted) builds:
+#
+# 1. apt sandbox. With `apptainer build --fakeroot` on an HPC node that has no
+#    /etc/subuid + /etc/subgid range, only a single UID is mapped into the build
+#    namespace, so apt cannot drop privileges to its sandbox user `_apt`:
+#        E: setegid/seteuid ... Invalid argument / Method http has died
+#    `APT::Sandbox::User "root"` makes apt run as the namespace root user.
+#
+# 2. DEBIAN_FRONTEND. Neurodocker sets this as an ARG in the Dockerfile, but
+#    %post does not get it, so packages like tzdata launch interactive debconf
+#    prompts (geographic area, etc.) that hang a non-interactive job forever.
+#    Exporting DEBIAN_FRONTEND=noninteractive (+ a default TZ) suppresses them.
+#
+# Both must be set before Neurodocker's first `apt-get update`, i.e. at the very
 # top of %post.
 python3 - "$PWD/Singularity" <<'PY'
 import sys
 path = sys.argv[1]
-inject = 'echo \'APT::Sandbox::User "root";\' > /etc/apt/apt.conf.d/99-disable-sandbox\n'
+inject = (
+    'export DEBIAN_FRONTEND=noninteractive\n'
+    'export TZ=Etc/UTC\n'
+    'echo \'APT::Sandbox::User "root";\' > /etc/apt/apt.conf.d/99-disable-sandbox\n'
+)
 with open(path) as f:
     lines = f.readlines()
 out, done = [], False
